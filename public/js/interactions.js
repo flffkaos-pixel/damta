@@ -63,19 +63,18 @@ const Interactions = (() => {
   class Ash {
     constructor(x, y) {
       const s = baseScale;
-      this.x = x + (Math.random() - 0.5) * 6 * s;
+      this.x = x + (Math.random() - 0.5) * 3 * s;
       this.y = y;
-      this.size = (1.5 + Math.random() * 3) * s;
+      this.size = (1 + Math.random() * 1.5) * s;
       this.life = 1;
-      this.vy = (Math.random() * 0.8 + 0.3) * s;
-      this.vx = (Math.random() - 0.5) * 0.5 * s;
-      this.friction = 0.97;
+      this.vy = (Math.random() * 1.5 + 1) * s;
+      this.vx = (Math.random() - 0.5) * 0.8 * s;
+      this.friction = 0.96;
     }
     update() {
       this.x += this.vx; this.y += this.vy;
-      this.vy *= this.friction; this.vx *= 0.99;
-      this.life -= 0.006;
-      this.y += 0.4 * baseScale;
+      this.vy *= this.friction; this.vx *= 0.97;
+      this.life -= 0.015;
     }
     draw(ctx) {
       if (this.life <= 0) return;
@@ -491,7 +490,9 @@ const Interactions = (() => {
       }
       const r = cigLen * (1 - cig.burn / cig.maxBurn);
       const tip = rot(cx, cy, r, 0, angle);
-      if (Math.random() < 0.08) particles.push(new VapeCloud(tip.x, tip.y));
+      if (Math.random() < 0.08) {
+        particles.push(new Smoke(tip.x, tip.y, { vy: 1.5, vx: 0.6, size: 5, decay: 0.005, gravity: -0.03 }));
+      }
     }
 
     const burnRatio = cig.done ? 1 : (cig.burn / cig.maxBurn);
@@ -503,7 +504,7 @@ const Interactions = (() => {
 
     if (remaining > 0) {
       const grdF = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
-      grdF.addColorStop(0, '#6b4423'); grdF.addColorStop(0.5, '#5a3a1e'); grdF.addColorStop(1, '#4a3018');
+      grdF.addColorStop(0, '#c4956a'); grdF.addColorStop(0.5, '#b8865a'); grdF.addColorStop(1, '#a0774a');
       ctx.fillStyle = grdF;
       ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
       const grdP = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
