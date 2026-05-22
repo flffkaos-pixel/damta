@@ -274,7 +274,8 @@ const Interactions = (() => {
     particles = [];
     sessionActive = false;
     sessionTime = 0;
-    document.getElementById('restart-btn').classList.add('hidden');
+    const btn = document.getElementById('restart-btn');
+    if (btn) btn.style.display = 'none';
     updateTotals();
   }
 
@@ -286,6 +287,8 @@ const Interactions = (() => {
     setupEvents();
     animate();
     updateTotals();
+    const rb = document.getElementById('restart-btn');
+    if (rb) rb.style.display = 'none';
   }
 
   function resize() {
@@ -326,7 +329,8 @@ const Interactions = (() => {
     sessionActive = false;
     const m = Math.floor(sessionTime / 60);
     const sec = Math.floor(sessionTime % 60);
-    document.getElementById('timer-display').textContent = `✅ ${m}:${sec.toString().padStart(2, '0')}`;
+    const td = document.getElementById('timer-display');
+    if (td) td.textContent = `✅ ${m}:${sec.toString().padStart(2, '0')}`;
     if (mode === 'cigarette' && cig.done) {
       cig.total++; if (socket) socket.emit('cigarette-done');
     }
@@ -336,7 +340,7 @@ const Interactions = (() => {
     if (mode === 'candle' && !candle.lit) candle.total++;
     if (mode === 'pipe' && pipe.done) pipe.total++;
     const btn = document.getElementById('restart-btn');
-    if (btn) btn.classList.remove('hidden');
+    if (btn) btn.style.display = 'flex';
     updateTotals();
   }
 

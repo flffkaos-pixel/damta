@@ -86,10 +86,8 @@ body {
   cursor: pointer; font-size: 26px; z-index: 9999; transition: all 0.3s;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 40px rgba(240,160,80,0.6);
-  opacity: 1; pointer-events: auto;
 }
 .restart-btn:hover { background: #ffb860; transform: translate(-50%, -50%) scale(1.15); }
-.restart-btn.hidden { opacity: 0 !important; pointer-events: none !important; }
 
 @media (max-width: 768px) {
   #header { padding: 3px 6px; min-height: 32px; }
