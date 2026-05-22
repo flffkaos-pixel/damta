@@ -81,14 +81,14 @@ body {
 
 .restart-btn {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: rgba(240,160,80,0.25); border: 2px solid rgba(240,160,80,0.5);
-  color: #f0a050; width: 56px; height: 56px; border-radius: 50%;
-  cursor: pointer; font-size: 22px; z-index: 20; transition: all 0.3s;
+  background: #f0a050; border: none;
+  color: #0a0a0f; width: 64px; height: 64px; border-radius: 50%;
+  cursor: pointer; font-size: 26px; z-index: 9999; transition: all 0.3s;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 20px rgba(240,160,80,0.15);
+  box-shadow: 0 0 40px rgba(240,160,80,0.6);
 }
-.restart-btn:hover { background: rgba(240,160,80,0.3); }
-.restart-btn.hidden { display: none; }
+.restart-btn:hover { background: #ffb860; transform: translate(-50%, -50%) scale(1.15); }
+.restart-btn.hidden { display: none !important; }
 
 @media (max-width: 768px) {
   #header { padding: 3px 6px; min-height: 32px; }

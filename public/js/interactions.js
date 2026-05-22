@@ -275,6 +275,7 @@ const Interactions = (() => {
     sessionActive = false;
     sessionTime = 0;
     document.getElementById('restart-btn').classList.add('hidden');
+    document.getElementById('restart-btn').style.display = 'none';
     updateTotals();
   }
 
@@ -328,15 +329,15 @@ const Interactions = (() => {
     const sec = Math.floor(sessionTime % 60);
     document.getElementById('timer-display').textContent = `✅ ${m}:${sec.toString().padStart(2, '0')}`;
     if (mode === 'cigarette' && cig.done) {
-      cig.total++; socket.emit('cigarette-done');
+      cig.total++; if (socket) socket.emit('cigarette-done');
     }
     if (mode === 'bubble') bubble.total++;
     if (mode === 'vape') vape.total++;
     if (mode === 'match' && match.done) match.total++;
     if (mode === 'candle' && !candle.lit) candle.total++;
-    if (mode === 'campfire' && !campfire.lit) campfire.total++;
     if (mode === 'pipe' && pipe.done) pipe.total++;
-    document.getElementById('restart-btn').classList.remove('hidden');
+    const btn = document.getElementById('restart-btn');
+    if (btn) { btn.classList.remove('hidden'); btn.style.display = 'flex'; }
     updateTotals();
   }
 
