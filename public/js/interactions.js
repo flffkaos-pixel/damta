@@ -40,7 +40,7 @@ const Interactions = (() => {
       this.y = y;
       this.vx = (Math.random() - 0.5) * 0.15 * s;
       this.vy = (-Math.random() * 0.5 - 0.15) * s;
-      this.size = (1.5 + Math.random() * 3) * s;
+      this.size = (2 + Math.random() * 4) * s;
       this.life = 1;
       this.decay = 0.008 + Math.random() * 0.008;
       this.phase = Math.random() * Math.PI * 2;
@@ -487,8 +487,8 @@ const Interactions = (() => {
     const angle = -Math.PI / 6;
 
     if (cig.lit && !cig.done) {
-      cig.burn += 0.004 + (isPressed ? 0.006 : 0);
-      cig.ash += 0.003 + (isPressed ? 0.005 : 0);
+      cig.burn += (0.004 + (isPressed ? 0.006 : 0)) * 1.2;
+      cig.ash += (0.003 + (isPressed ? 0.005 : 0)) * 1.2;
       if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; endSession(); }
       if (cig.ash >= cig.maxAsh) {
         const r = cigLen * (1 - cig.burn / cig.maxBurn);
@@ -563,23 +563,14 @@ const Interactions = (() => {
     // ── ember ──
     if (cig.lit && !cig.done) {
       const tipX = remaining;
-      // glow
-      const grd = ctx.createRadialGradient(tipX, 0, 0, tipX, 0, 15 * s);
-      grd.addColorStop(0, 'rgba(255,200,80,0.45)');
-      grd.addColorStop(0.15, 'rgba(255,140,40,0.3)');
-      grd.addColorStop(0.4, 'rgba(220,50,0,0.12)');
-      grd.addColorStop(1, 'rgba(220,50,0,0)');
+      const grd = ctx.createRadialGradient(tipX, 0, 0, tipX, 0, 10 * s);
+      grd.addColorStop(0, 'rgba(255,200,80,0.7)');
+      grd.addColorStop(0.3, 'rgba(255,120,30,0.5)');
+      grd.addColorStop(1, 'rgba(255,50,0,0)');
       ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.ellipse(tipX, 0, 6 * s, 12 * s, 0, 0, Math.PI * 2); ctx.fill();
-      // hot core
-      ctx.beginPath(); ctx.ellipse(tipX, 0, 2.5 * s, 5.5 * s, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,230,150,0.95)'; ctx.fill();
-      // bright spot
-      ctx.beginPath(); ctx.arc(tipX + 0.5 * s, -1.5 * s, 1 * s, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,230,0.8)'; ctx.fill();
-      // smoke ring around ember
-      ctx.beginPath(); ctx.ellipse(tipX, 0, 8 * s, 14 * s, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(180,170,160,0.02)'; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(tipX, 0, 4 * s, 10 * s, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(tipX, 0, 2 * s, 5 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,200,100,0.9)'; ctx.fill();
     }
 
     // done: filter nub
@@ -641,15 +632,15 @@ const Interactions = (() => {
     const s = baseScale;
     const cx = W / 2, cy = H * 0.5 - 30 * s;
     ctx.save(); ctx.translate(cx, cy);
-    ctx.fillStyle = '#1a1a24';
+    ctx.fillStyle = '#182038';
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
-    ctx.fillStyle = '#22222e';
+    ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
     const liquidH = (vapeLiquid / 100) * 40 * s;
     const barX = 14 * s, barW = 3 * s, barY = 18 * s;
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillStyle = 'rgba(200,230,255,0.08)';
     ctx.roundRect(barX, barY, barW, 40 * s, 1.5 * s); ctx.fill();
-    ctx.fillStyle = 'rgba(255,180,60,0.5)';
+    ctx.fillStyle = 'rgba(100,200,255,0.5)';
     ctx.roundRect(barX, barY + 40 * s - liquidH, barW, liquidH, 1.5 * s); ctx.fill();
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
