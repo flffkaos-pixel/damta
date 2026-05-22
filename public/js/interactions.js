@@ -275,7 +275,6 @@ const Interactions = (() => {
     sessionActive = false;
     sessionTime = 0;
     document.getElementById('restart-btn').classList.add('hidden');
-    document.getElementById('restart-btn').style.display = 'none';
     updateTotals();
   }
 
@@ -337,7 +336,7 @@ const Interactions = (() => {
     if (mode === 'candle' && !candle.lit) candle.total++;
     if (mode === 'pipe' && pipe.done) pipe.total++;
     const btn = document.getElementById('restart-btn');
-    if (btn) { btn.classList.remove('hidden'); btn.style.display = 'flex'; }
+    if (btn) btn.classList.remove('hidden');
     updateTotals();
   }
 
