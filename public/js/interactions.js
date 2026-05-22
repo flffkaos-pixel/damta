@@ -10,7 +10,7 @@ const Interactions = (() => {
   // Timer
   let sessionActive = false;
   let sessionTime = 0; // seconds elapsed
-  const SESSION_DURATION = 290; // 4:50
+  let sessionDuration = 300 + Math.floor(Math.random() * 120); // 5:00 ~ 7:00
 
   // Stats
   let totalCigarettes = 0;
@@ -268,7 +268,7 @@ const Interactions = (() => {
     const el = document.getElementById('hint-text');
     if (el) { el.textContent = hints[newMode] || '👆'; el.parentElement.classList.remove('hidden'); }
     setTimeout(() => { const e2 = document.getElementById('hint-text'); if (e2) e2.parentElement.classList.add('hidden'); }, 2000);
-    document.getElementById('timer-display').textContent = '⏱️ 5:00';
+    document.getElementById('timer-display').textContent = '⏱️ 0:00';
   }
 
   function getPos(e) {
@@ -281,6 +281,7 @@ const Interactions = (() => {
     if (sessionActive) return;
     sessionActive = true;
     sessionTime = 0;
+    sessionDuration = 300 + Math.floor(Math.random() * 120); // 5:00 ~ 7:00
   }
 
   function endSession() {
@@ -315,20 +316,14 @@ const Interactions = (() => {
         handleCampfire();
         if (campfire.lit) startSession();
       } else if (mode === 'vape') {
-        vapePuffing = true; spawnVape(pos);
+        vapePuffing = true;
         if (!sessionActive) startSession();
       } else if (mode === 'bubble') {
         if (!sessionActive) startSession();
-        for (let i = 0; i < 3; i++) particles.push(new Bubble(pos.x, pos.y));
       }
     }
     function onMove(e) {
       e.preventDefault();
-      const pos = getPos(e);
-      if (isPressed && mode === 'bubble') {
-        for (let i = 0; i < 3; i++) particles.push(new Bubble(pos.x, pos.y));
-      }
-      if (isPressed && mode === 'vape' && Math.random() < 0.35) spawnVape(pos);
     }
     function onUp(e) {
       e.preventDefault();
@@ -395,14 +390,13 @@ const Interactions = (() => {
   function animate() {
     ctx.clearRect(0, 0, W, H);
 
-    // Timer
+    // Timer (count UP)
     if (sessionActive) {
       sessionTime += 1 / 60;
-      const remain = Math.max(0, SESSION_DURATION - sessionTime);
-      const m = Math.floor(remain / 60);
-      const sec = Math.floor(remain % 60);
+      const m = Math.floor(sessionTime / 60);
+      const sec = Math.floor(sessionTime % 60);
       document.getElementById('timer-display').textContent = `⏱️ ${m}:${sec.toString().padStart(2, '0')}`;
-      if (remain <= 0) {
+      if (sessionTime >= sessionDuration) {
         if (mode === 'cigarette') { cig.lit = false; cig.done = true; }
         if (mode === 'match') { match.burning = false; match.done = true; }
         if (mode === 'candle') { candle.lit = false; candleFlame = null; }
@@ -487,7 +481,7 @@ const Interactions = (() => {
       const remaining = cig.maxBurn * (1 - cig.burn / cig.maxBurn);
       const tip = rot(cx, cy, remaining, 0, angle);
       if (Math.random() < 0.35) {
-        particles.push(new Smoke(tip.x + (Math.random() - 0.5) * 3 * s, tip.y, { vy: 0.5, size: 4 }));
+        particles.push(new Smoke(tip.x + (Math.random() - 0.5) * 3 * s, tip.y, { vy: 0.6, size: 7 }));
       }
     }
 
@@ -553,63 +547,65 @@ const Interactions = (() => {
   function updateBubble() {
     const s = baseScale;
     const cx = W / 2, cy = H * 0.5;
+    const wandX = cx, wandY = cy - 20 * s;
     if (isPressed) {
-      const bw = 14 * s;
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 3; i++) {
         const a = Math.random() * Math.PI * 2;
-        particles.push(new Bubble(cx + Math.cos(a) * bw * 0.6, cy - 20 * s - Math.sin(a) * bw * 0.6));
+        particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
       }
     }
     // Wand
     ctx.save(); ctx.translate(cx, cy);
     ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
     ctx.beginPath(); ctx.moveTo(0, 20 * s); ctx.lineTo(0, -15 * s); ctx.stroke();
-    ctx.strokeStyle = '#a09080'; ctx.lineWidth = 2.5 * s;
+    // Clean circle
+    ctx.strokeStyle = 'rgba(180,200,230,0.4)'; ctx.lineWidth = 2.5 * s;
     ctx.beginPath(); ctx.arc(0, -20 * s, 14 * s, 0, Math.PI * 2); ctx.stroke();
-    // Wand film
-    ctx.strokeStyle = 'rgba(180,180,220,0.15)'; ctx.lineWidth = 1 * s;
-    ctx.beginPath(); ctx.arc(0, -20 * s, 12 * s, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
+    ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
   }
 
   // ═════════════ VAPE ═════════════
   function updateVape() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.48;
+    const cx = W / 2, cy = H * 0.5;
     ctx.save(); ctx.translate(cx, cy);
-    // Body
+    // Body (mouthpiece at top, main body below)
     ctx.fillStyle = '#1a1a24';
-    ctx.roundRect(-16 * s, -35 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
+    ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#22222e';
-    ctx.roundRect(-14 * s, -33 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
+    ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
     // LED strip (liquid level)
-    const liquidH = (vapeLiquid / 100) * 40 * s;
-    const grdL = ctx.createLinearGradient(0, -25 * s + 40 * s - liquidH, 0, -25 * s + 40 * s);
+    const liquidH = (vapeLiquid / 100) * 35 * s;
+    const grdL = ctx.createLinearGradient(0, 55 * s - liquidH, 0, 55 * s);
     grdL.addColorStop(0, 'rgba(0,200,255,0)');
-    grdL.addColorStop(0.5, 'rgba(0,200,255,0.15)');
-    grdL.addColorStop(1, 'rgba(0,200,255,0.25)');
+    grdL.addColorStop(1, 'rgba(0,200,255,0.2)');
     ctx.fillStyle = grdL;
-    ctx.roundRect(-10 * s, -25 * s + 40 * s - liquidH, 20 * s, liquidH, 3 * s); ctx.fill();
-    // LED indicator
-    ctx.beginPath(); ctx.arc(0, -22 * s, 4 * s, 0, Math.PI * 2);
-    ctx.fillStyle = vapePuffing ? '#ff3300' : '#ff0044'; ctx.fill();
+    ctx.roundRect(-10 * s, 55 * s - liquidH, 20 * s, liquidH, 3 * s); ctx.fill();
+    // LED circle (full red when puffing)
+    ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
+    ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
-      ctx.beginPath(); ctx.arc(0, -22 * s, 10 * s, 0, Math.PI * 2);
-      const g = ctx.createRadialGradient(0, -22 * s, 0, 0, -22 * s, 10 * s);
-      g.addColorStop(0, 'rgba(255,50,0,0.2)'); g.addColorStop(1, 'rgba(255,50,0,0)');
+      ctx.beginPath(); ctx.arc(0, 10 * s, 14 * s, 0, Math.PI * 2);
+      const g = ctx.createRadialGradient(0, 10 * s, 0, 0, 10 * s, 14 * s);
+      g.addColorStop(0, 'rgba(255,30,0,0.3)'); g.addColorStop(1, 'rgba(255,30,0,0)');
       ctx.fillStyle = g; ctx.fill();
+      // Full circle red glow
+      ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff3300'; ctx.fill();
     }
-    // Tip
+    // Mouthpiece (at top)
     ctx.fillStyle = '#3a3a48';
-    ctx.roundRect(-8 * s, -48 * s, 16 * s, 14 * s, 3 * s); ctx.fill();
+    ctx.roundRect(-8 * s, -18 * s, 16 * s, 14 * s, 3 * s); ctx.fill();
     ctx.fillStyle = '#4a4a58';
-    ctx.roundRect(-6 * s, -50 * s, 12 * s, 5 * s, 2 * s); ctx.fill();
+    ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
 
     if (vapePuffing) {
       vapeLiquid = Math.max(0, vapeLiquid - 0.02);
       if (Math.random() < 0.35) {
-        particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 52 * s));
+        particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 24 * s));
       }
     }
   }
@@ -641,19 +637,26 @@ const Interactions = (() => {
       match.burn += 0.03;
       if (match.burn >= match.maxBurn) { match.done = true; match.burning = false; endSession(); }
       const burnRatio = match.burn / match.maxBurn;
-      const flSize = (10 - burnRatio * 6) * s;
-      const flameY = (-5 - burnRatio * 12) * s;
-      const flame = new Flame(headX, flameY, { size: Math.max(flSize, 3 * s), color: [255, 180 - burnRatio * 80, 50 - burnRatio * 30] });
+      const burnedLen = burnRatio * 45 * s;
+      const flameX = headX - burnedLen;
+      const flSize = (10 - burnRatio * 5) * s;
+      const flame = new Flame(flameX, -8 * s, { size: Math.max(flSize, 2 * s), color: [255, 180 - burnRatio * 80, 50 - burnRatio * 30] });
       flame.update(); flame.draw(ctx);
-      if (Math.random() < 0.2) {
-        particles.push(new Smoke(headX, flameY - 8 * s, { vy: 0.5, size: 2 * s, color: 'rgba(255,200,150,ALPHA)' }));
+      // Ember glow at burn point
+      ctx.beginPath(); ctx.arc(flameX, 0, 3 * s, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,100,30,0.5)'; ctx.fill();
+      // Ash fall
+      if (Math.random() < 0.08) {
+        particles.push(new Ash(flameX + (Math.random() - 0.5) * 4 * s, 2 * s));
       }
-      const burned = (match.burn / match.maxBurn) * 45 * s;
-      if (burned > 3 * s) {
-        const grd = ctx.createLinearGradient(headX - burned, 0, headX, 0);
+      if (Math.random() < 0.2) {
+        particles.push(new Smoke(flameX, -12 * s, { vy: 0.5, size: 2.5 * s, color: 'rgba(255,200,150,ALPHA)' }));
+      }
+      if (burnedLen > 3 * s) {
+        const grd = ctx.createLinearGradient(headX - burnedLen, 0, headX, 0);
         grd.addColorStop(0, '#3a2510'); grd.addColorStop(1, '#5a3520');
         ctx.fillStyle = grd;
-        ctx.roundRect(headX - burned, -2.5 * s, burned, 5 * s, 1); ctx.fill();
+        ctx.roundRect(headX - burnedLen, -2.5 * s, burnedLen, 5 * s, 1); ctx.fill();
       }
     }
 
@@ -698,10 +701,13 @@ const Interactions = (() => {
       const cx2 = cx + Math.sin(Date.now() * 0.003) * 1.5 * s;
       const cy2 = cy - candleH - 8 * s;
       candleFlame.x = cx2; candleFlame.y = cy2; candleFlame.baseY = cy2;
+      // Flame shrinks as candle burns down
+      const flameSizeRatio = Math.max(candleH / (candle.height * s), 0.2);
+      candleFlame.maxSize = 14 * s * flameSizeRatio;
       candleFlame.update(); candleFlame.draw(ctx);
       if (Math.random() < 0.015) candle.melt += 0.03;
       if (Math.random() < 0.1) particles.push(new Smoke(cx2, cy2 - 12 * s, { vy: 0.3, size: 1.5 * s, color: 'rgba(200,180,160,ALPHA)' }));
-      if (candleH <= 12 * s) { candle.lit = false; candleFlame = null; endSession(); }
+      if (candleH <= 10 * s) { candle.lit = false; candleFlame = null; endSession(); }
     }
   }
 

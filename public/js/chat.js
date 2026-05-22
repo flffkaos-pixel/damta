@@ -83,11 +83,13 @@ const Chat = (() => {
     container.appendChild(el);
     container.scrollTop = container.scrollHeight;
 
-    // Auto-fade after 25 seconds (damta.world style)
+    // Float upward like smoke before disappearing
     setTimeout(() => {
-      el.style.transition = 'opacity 1.5s ease-out';
+      const driftX = (Math.random() - 0.5) * 60;
+      el.style.transition = 'transform 4s ease-out, opacity 4s ease-out';
+      el.style.transform = `translate(${driftX}px, -120px)`;
       el.style.opacity = '0';
-      setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1500);
+      setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 4000);
     }, 25000);
   }
 
