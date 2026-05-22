@@ -22,8 +22,8 @@ body {
 #interact-row::-webkit-scrollbar { display: none; }
 .interact-btn {
   background: rgba(255,255,255,0.04); border: 1px solid transparent;
-  color: #786c60; padding: 3px 8px; border-radius: 14px; cursor: pointer;
-  font-size: 15px; transition: all 0.2s; line-height: 1.4;
+  color: #786c60; padding: 6px 12px; border-radius: 16px; cursor: pointer;
+  font-size: 20px; transition: all 0.2s; line-height: 1;
 }
 .interact-btn:hover { color: #b0a090; background: rgba(255,200,150,0.08); }
 .interact-btn.active {
@@ -92,7 +92,7 @@ body {
 @media (max-width: 768px) {
   #header { padding: 3px 6px; min-height: 32px; }
   .logo { font-size: 11px; }
-  .interact-btn { font-size: 13px; padding: 2px 6px; }
+  .interact-btn { font-size: 18px; padding: 5px 10px; }
   #stats-bar { font-size: 9px; gap: 8px; padding: 2px 6px; }
   #timer-display { font-size: 10px; }
   #totals-bar { font-size: 8px; padding: 1px 6px; }

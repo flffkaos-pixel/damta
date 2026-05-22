@@ -237,7 +237,7 @@ const Interactions = (() => {
       if (this.life <= 0) return;
       const alpha = Math.min(this.life * 2, 0.85);
       const s = baseScale;
-      ctx.font = `bold ${14 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      ctx.font = `bold ${9 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
       const nickW = ctx.measureText(this.nickname + ': ').width;
       const fullText = this.nickname + ': ' + this.text;
       const m = ctx.measureText(fullText);
