@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mood Play - 무드 플레이</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="header">
+    <div class="logo">✨ Mood Play</div>
+    <div class="room-selector">
+      <button class="room-btn active" data-room="rooftop">🌙 옥상</button>
+      <button class="room-btn" data-room="cafe">☕ 카페</button>
+      <button class="room-btn" data-room="park">🌳 공원</button>
+      <button class="room-btn" data-room="room">🛋️ 방</button>
+      <button class="room-btn" data-room="beach">🌊 바닷가</button>
+    </div>
+    <div class="user-info">
+      <span id="user-nickname"></span>
+      <span id="room-count" class="room-count">0명</span>
+    </div>
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+  </header>
+
+  <div id="main">
+    <div id="canvas-wrap">
+      <canvas id="main-canvas"></canvas>
+      <div id="interaction-hint">
+        <span id="hint-text">👆 꾹 누르고 있기</span>
+      </div>
+      <div id="interaction-selector">
+        <button class="interact-btn active" data-mode="cigarette">🚬 담배</button>
+        <button class="interact-btn" data-mode="bubble">🫧 비눗방울</button>
+        <button class="interact-btn" data-mode="vape">💨 전자담배</button>
+        <button class="interact-btn" data-mode="match">🔥 성냥</button>
+        <button class="interact-btn" data-mode="candle">🕯️ 양초</button>
+        <button class="interact-btn" data-mode="campfire">🔥 모닥불</button>
+      </div>
+    </div>
+
+    <div id="chat-panel">
+      <div class="chat-header">
+        <span>💬 실시간 채팅</span>
+        <span class="chat-hint">익명 · 자유롭게</span>
+      </div>
+      <div id="chat-msgs"></div>
+      <div class="chat-input-wrap">
+        <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." maxlength="500" autocomplete="off">
+        <button id="chat-send">전송</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/interactions.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
