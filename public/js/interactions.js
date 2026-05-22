@@ -258,11 +258,11 @@ const Interactions = (() => {
   function updateTotals() {
     const el = document.getElementById('totals');
     if (!el) return;
-    el.textContent = `🚬${cig.total}  🫧${bubble.total}  💨${vape.total}  🔥${match.total}  🕯️${candle.total}  🔥${campfire.total}  🤏${pipe.total}`;
+    el.textContent = `🚬${cig.total}  🫧${bubble.total}  💨${vape.total}  🔥${match.total}  🕯️${candle.total}  🪔${pipe.total}`;
   }
 
   function resetState() {
-    cig = { burn: 0, maxBurn: 66, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
+    cig = { burn: 0, maxBurn: 80, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
     match = { burning: false, burn: 0, maxBurn: 100, done: false, total: match.total || 0 };
     candle = { lit: false, melt: 0, height: 150, total: candle.total || 0 };
     candleFlame = null;
@@ -496,7 +496,7 @@ const Interactions = (() => {
     if (cig.lit && !cig.done) {
       cig.burn += (0.004 + (isPressed ? 0.006 : 0)) * 1.2;
       cig.ash += (0.003 + (isPressed ? 0.005 : 0)) * 1.2;
-      if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; endSession(); }
+      if (cig.burn >= cig.maxBurn || cigLen * (1 - cig.burn / cig.maxBurn) <= 22 * s) { cig.done = true; cig.lit = false; endSession(); }
       if (cig.ash >= cig.maxAsh) {
         const r = cigLen * (1 - cig.burn / cig.maxBurn);
         const t = rot(cx, cy, r, 0, angle);
@@ -510,7 +510,7 @@ const Interactions = (() => {
       }
     }
 
-    const burnRatio = cig.done ? 1 : (cig.burn / cig.maxBurn);
+    const burnRatio = cig.burn / cig.maxBurn;
     const remaining = cigLen * (1 - burnRatio);
 
     ctx.save();
@@ -580,19 +580,12 @@ const Interactions = (() => {
       ctx.fillStyle = 'rgba(255,200,100,0.9)'; ctx.fill();
     }
 
-    // done: filter nub
+    // done: scorched tip on filter
     if (cig.done) {
-      const grdF = ctx.createLinearGradient(0, bodyTop, 0, bodyBot);
-      grdF.addColorStop(0, '#a07030'); grdF.addColorStop(0.5, '#c08840'); grdF.addColorStop(1, '#906028');
-      ctx.fillStyle = grdF;
-      ctx.roundRect(0, bodyTop, filterW, cigW, [3 * s, 0, 0, 3 * s]); ctx.fill();
-      ctx.fillStyle = 'rgba(120,80,40,0.12)';
-      for (let t = 0; t < 6; t++) {
-        ctx.beginPath(); ctx.arc(Math.random() * filterW, bodyTop + Math.random() * cigW, (0.3 + Math.random() * 0.6) * s, 0, Math.PI * 2); ctx.fill();
-      }
-      // scorched end
       ctx.fillStyle = 'rgba(50,40,30,0.35)';
-      ctx.roundRect(filterW - 2.5 * s, bodyTop, 3 * s, cigW, 1); ctx.fill();
+      ctx.roundRect(Math.max(0, remaining - 2 * s), bodyTop, 3 * s, cigW, 1); ctx.fill();
+      ctx.fillStyle = 'rgba(80,60,40,0.15)';
+      ctx.roundRect(Math.max(0, remaining - 4 * s), bodyTop, 2 * s, cigW, 1); ctx.fill();
     }
 
     ctx.restore();
@@ -826,97 +819,115 @@ const Interactions = (() => {
   // ═════════════ PIPE ═════════════
   function updatePipe() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.5 + 10 * s;
+    const cx = W / 2 - 20 * s, cy = H * 0.5 + 20 * s;
 
     ctx.save(); ctx.translate(cx, cy);
 
-    // bowl
-    const bowlW = 36 * s, bowlH = 28 * s, chamberH = 18 * s;
-    const tobaccoRatio = pipe.done ? 0 : pipe.tobacco / 100;
+    const tRatio = pipe.done ? 0 : pipe.tobacco / 100;
 
-    // bowl outer (dark wood)
-    ctx.fillStyle = '#2d1a0e';
+    // stem (curved, from bottom of bowl going right and up)
+    ctx.strokeStyle = '#3d2212';
+    ctx.lineWidth = 5 * s;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(-bowlW / 2, bowlH * 0.3);
-    ctx.quadraticCurveTo(-bowlW / 2 - 4 * s, -2 * s, -bowlW / 2 + 4 * s, -bowlH * 0.7);
-    ctx.lineTo(bowlW / 2 - 4 * s, -bowlH * 0.7);
-    ctx.quadraticCurveTo(bowlW / 2 + 4 * s, -2 * s, bowlW / 2, bowlH * 0.3);
-    ctx.lineTo(-bowlW / 2, bowlH * 0.3);
-    ctx.fill();
+    ctx.moveTo(18 * s, -4 * s);
+    ctx.quadraticCurveTo(40 * s, 24 * s, 70 * s, 8 * s);
+    ctx.quadraticCurveTo(85 * s, 2 * s, 100 * s, -2 * s);
+    ctx.stroke();
 
-    // bowl inner chamber
+    // mouthpiece
+    ctx.strokeStyle = '#4a3020';
+    ctx.lineWidth = 4 * s;
+    ctx.beginPath();
+    ctx.moveTo(96 * s, -1 * s);
+    ctx.lineTo(108 * s, -4 * s);
+    ctx.stroke();
+    ctx.fillStyle = '#4a3020';
+    ctx.roundRect(105 * s, -6 * s, 8 * s, 5 * s, 2 * s); ctx.fill();
+
+    // bowl
+    const bw = 30 * s, bh = 34 * s;
+    ctx.save();
+
+    // shadow under bowl
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(0, 10 * s, bw * 0.55, 6 * s, 0, 0, Math.PI * 2); ctx.fill();
+
+    // bowl body (rounded cylinder)
+    const grad = ctx.createLinearGradient(-bw / 2, -bh / 2, bw / 2, -bh / 2);
+    grad.addColorStop(0, '#3a1f10'); grad.addColorStop(0.3, '#5a3520');
+    grad.addColorStop(0.6, '#5a3520'); grad.addColorStop(1, '#2d180a');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(-bw / 2 + 4 * s, -bh / 2);
+    ctx.quadraticCurveTo(-bw / 2 - 2 * s, -bh / 4, -bw / 2 + 2 * s, bh / 2);
+    ctx.lineTo(bw / 2 - 2 * s, bh / 2);
+    ctx.quadraticCurveTo(bw / 2 + 2 * s, -bh / 4, bw / 2 - 4 * s, -bh / 2);
+    ctx.closePath(); ctx.fill();
+
+    // bowl rim
+    ctx.strokeStyle = '#6a4528';
+    ctx.lineWidth = 3 * s;
+    ctx.beginPath();
+    ctx.moveTo(-bw / 2 + 5 * s, -bh / 2 + 2 * s);
+    ctx.quadraticCurveTo(0, -bh / 2 - 4 * s, bw / 2 - 5 * s, -bh / 2 + 2 * s);
+    ctx.stroke();
+
+    // chamber opening (ellipse at top)
     ctx.fillStyle = '#1a0e06';
     ctx.beginPath();
-    ctx.ellipse(0, -bowlH * 0.5, bowlW / 2 - 6 * s, chamberH / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -bh / 2 + 2 * s, bw / 2 - 6 * s, 5 * s, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // tobacco
-    if (tobaccoRatio > 0) {
-      const th = chamberH * tobaccoRatio;
-      const grdT = ctx.createLinearGradient(0, -bowlH * 0.5 - th, 0, -bowlH * 0.5);
-      grdT.addColorStop(0, '#5a3a20'); grdT.addColorStop(1, '#8a6030');
+    // tobacco in chamber
+    if (tRatio > 0) {
+      const tH = (bw - 12 * s) * 0.4 * tRatio;
+      const tY = -bh / 2 + 2 * s + (1 - tRatio) * 8 * s;
+      const grdT = ctx.createLinearGradient(0, tY, 0, tY + tH);
+      grdT.addColorStop(0, '#7a5028'); grdT.addColorStop(1, '#4a2a12');
       ctx.fillStyle = grdT;
       ctx.beginPath();
-      ctx.ellipse(0, -bowlH * 0.5 - th + chamberH * tobaccoRatio * 0.5, bowlW / 2 - 7 * s, th / 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, tY + tH / 2, bw / 2 - 7 * s, tH / 2, 0, 0, Math.PI * 2);
       ctx.fill();
-      // tobacco texture dots
-      ctx.fillStyle = 'rgba(40,25,10,0.2)';
-      for (let t = 0; t < 8; t++) {
-        const tx = (Math.random() - 0.5) * (bowlW / 2 - 8 * s);
-        const ty = -bowlH * 0.5 - th * (0.2 + Math.random() * 0.6);
-        ctx.beginPath(); ctx.arc(tx, ty, (0.5 + Math.random()) * s, 0, Math.PI * 2); ctx.fill();
+      // tobacco specks
+      ctx.fillStyle = 'rgba(30,18,8,0.2)';
+      for (let i = 0; i < 6; i++) {
+        const tx = (Math.random() - 0.5) * (bw - 16 * s);
+        const ty = tY + tH * (0.1 + Math.random() * 0.8);
+        ctx.beginPath(); ctx.arc(tx, ty, (0.3 + Math.random() * 0.6) * s, 0, Math.PI * 2); ctx.fill();
       }
     }
 
     // ash on top
-    if (pipe.lit && !pipe.done && tobaccoRatio > 0) {
-      const ashH = (1 - tobaccoRatio) * chamberH * 0.3;
-      ctx.fillStyle = `rgba(110,100,90,${0.3 + ashH / chamberH * 0.3})`;
+    if (pipe.lit && !pipe.done && tRatio > 0) {
+      const aY = -bh / 2 + 2 * s + (1 - tRatio) * 8 * s;
+      ctx.fillStyle = 'rgba(100,90,80,0.25)';
       ctx.beginPath();
-      ctx.ellipse(0, -bowlH * 0.5 - chamberH * (1 - tobaccoRatio) + 1 * s, bowlW / 2 - 7 * s, 2 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, aY - 1 * s, bw / 2 - 7 * s, 2 * s, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // ember glow on top
-    if (pipe.lit && !pipe.done && tobaccoRatio > 0) {
-      const topY = -bowlH * 0.5 - chamberH * (1 - tobaccoRatio);
-      const grd = ctx.createRadialGradient(0, topY, 0, 0, topY, 6 * s);
-      grd.addColorStop(0, 'rgba(255,200,80,0.6)');
-      grd.addColorStop(0.3, 'rgba(255,120,30,0.4)');
+    // ember
+    if (pipe.lit && !pipe.done && tRatio > 0) {
+      const eY = -bh / 2 + 2 * s + (1 - tRatio) * 8 * s;
+      const grd = ctx.createRadialGradient(0, eY, 0, 0, eY, 5 * s);
+      grd.addColorStop(0, 'rgba(255,200,80,0.5)');
+      grd.addColorStop(0.3, 'rgba(255,120,30,0.3)');
       grd.addColorStop(1, 'rgba(255,50,0,0)');
       ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.arc(0, topY, 6 * s, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(0, topY, 2 * s, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,200,100,0.85)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(0, eY, 5 * s, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, eY, 1.5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,200,100,0.8)'; ctx.fill();
     }
 
-    // stem (long thin tube from bowl right side)
-    ctx.strokeStyle = '#3a2518';
-    ctx.lineWidth = 5 * s;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(bowlW / 2 - 2 * s, 0);
-    ctx.quadraticCurveTo(bowlW / 2 + 30 * s, -20 * s, bowlW / 2 + 70 * s, -12 * s);
-    ctx.stroke();
-
-    // mouthpiece
-    ctx.strokeStyle = '#4d3a28';
-    ctx.lineWidth = 4 * s;
-    ctx.beginPath();
-    ctx.moveTo(bowlW / 2 + 68 * s, -12 * s);
-    ctx.lineTo(bowlW / 2 + 80 * s, -10 * s);
-    ctx.stroke();
-    ctx.fillStyle = '#4d3a28';
-    ctx.roundRect(bowlW / 2 + 78 * s, -13 * s, 6 * s, 5 * s, 2 * s); ctx.fill();
-
+    ctx.restore();
     ctx.restore();
 
-    // update burn
+    // update
     if (pipe.lit && !pipe.done) {
-      pipe.tobacco = Math.max(0, pipe.tobacco - 0.012);
-      pipe.ash = Math.min(pipe.ash + 0.005, 30);
+      pipe.tobacco = Math.max(0, pipe.tobacco - 0.01);
       if (pipe.tobacco <= 0) { pipe.done = true; pipe.lit = false; endSession(); }
-      if (Math.random() < 0.03) particles.push(new Smoke(cx + (Math.random() - 0.5) * 6 * s, cy - bowlH * 0.7 - chamberH));
+      if (Math.random() < 0.03) particles.push(new Smoke(cx, cy - bh * 0.6));
     }
   }
 
