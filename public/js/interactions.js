@@ -469,19 +469,19 @@ const Interactions = (() => {
     const angle = -Math.PI / 6;
 
     if (cig.lit && !cig.done) {
-      cig.burn += 0.035 + (isPressed ? 0.05 : 0);
-      cig.ash += 0.02 + (isPressed ? 0.03 : 0);
+      cig.burn += 0.004 + (isPressed ? 0.001 : 0);
+      cig.ash += 0.003 + (isPressed ? 0.001 : 0);
       if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; cig.totalSmoked = (cig.totalSmoked || 0) + 1; endSession(); }
       if (cig.ash >= cig.maxAsh) {
-        const r = cig.maxBurn * (1 - cig.burn / cig.maxBurn);
-        const t = rot(cx, cy, r, 0, angle);
+        const visRemaining = cigLen * (1 - cig.burn / cig.maxBurn);
+        const t = rot(cx, cy, visRemaining, 0, angle);
         for (let i = 0; i < 5; i++) particles.push(new Ash(t.x, t.y));
         cig.ash = 0;
       }
-      const remaining = cig.maxBurn * (1 - cig.burn / cig.maxBurn);
-      const tip = rot(cx, cy, remaining, 0, angle);
+      const visRemaining = cigLen * (1 - cig.burn / cig.maxBurn);
+      const tip = rot(cx, cy, visRemaining, 0, angle);
       if (Math.random() < 0.35) {
-        particles.push(new Smoke(tip.x + (Math.random() - 0.5) * 3 * s, tip.y, { vy: 0.6, size: 7 }));
+        particles.push(new Smoke(tip.x + (Math.random() - 0.5) * 4 * s, tip.y, { vy: 0.5, size: 8 }));
       }
     }
 
@@ -498,13 +498,6 @@ const Interactions = (() => {
       grdF.addColorStop(0, '#d4b070'); grdF.addColorStop(0.5, '#c8a060'); grdF.addColorStop(1, '#b89850');
       ctx.fillStyle = grdF;
       ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
-      // Paper dots (filter line)
-      ctx.strokeStyle = 'rgba(180,140,100,0.3)';
-      ctx.lineWidth = 1;
-      for (let d = 0; d < 3; d++) {
-        ctx.beginPath(); ctx.arc(6 * s + d * 6 * s, -cigW / 2 - 1, 1.5 * s, 0, Math.PI * 2); ctx.fillStyle = 'rgba(180,140,100,0.3)'; ctx.fill();
-        ctx.beginPath(); ctx.arc(6 * s + d * 6 * s, cigW / 2 + 1, 1.5 * s, 0, Math.PI * 2); ctx.fill();
-      }
       // Paper
       const grdP = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
       grdP.addColorStop(0, '#f2ece0'); grdP.addColorStop(0.5, '#faf6ee'); grdP.addColorStop(1, '#e8e0d0');
@@ -527,8 +520,8 @@ const Interactions = (() => {
       grd.addColorStop(0.3, 'rgba(255,120,30,0.5)');
       grd.addColorStop(1, 'rgba(255,50,0,0)');
       ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.arc(tipX, 0, 10 * s, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(tipX, 0, 3 * s, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.ellipse(tipX, 0, 10 * s, 4 * s, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(tipX, 0, 4 * s, 2 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255,200,100,0.9)'; ctx.fill();
     }
 
@@ -643,7 +636,7 @@ const Interactions = (() => {
       const flame = new Flame(flameX, -8 * s, { size: Math.max(flSize, 2 * s), color: [255, 180 - burnRatio * 80, 50 - burnRatio * 30] });
       flame.update(); flame.draw(ctx);
       // Ember glow at burn point
-      ctx.beginPath(); ctx.arc(flameX, 0, 3 * s, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.ellipse(flameX, 0, 4 * s, 2 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255,100,30,0.5)'; ctx.fill();
       // Ash fall
       if (Math.random() < 0.08) {

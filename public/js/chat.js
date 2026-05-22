@@ -18,7 +18,8 @@ const Chat = (() => {
     });
 
     socket.on('user-count', (data) => {
-      document.getElementById('room-count').textContent = data.count + '명';
+      const el = document.getElementById('room-count');
+      if (el) el.textContent = data.count + '명';
     });
 
     socket.on('room-changed', (data) => {

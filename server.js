@@ -48,6 +48,12 @@ io.on('connection', (socket) => {
   const nickname = randomNickname();
   let currentRoom = 'rooftop';
 
+  // Auto-join default room
+  socket.join(currentRoom);
+  roomUsers[currentRoom].users[socket.id] = { nickname, joined: Date.now() };
+  roomUsers[currentRoom].count = Object.keys(roomUsers[currentRoom].users).length;
+  io.to(currentRoom).emit('user-count', { roomId: currentRoom, count: roomUsers[currentRoom].count });
+
   socket.emit('init', { nickname, rooms: ROOMS, defaultRoom: currentRoom });
   broadcastStats();
 
