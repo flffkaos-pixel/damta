@@ -496,13 +496,36 @@ const Interactions = (() => {
       }
       const r = cigLen * (1 - cig.burn / cig.maxBurn);
       const tip = rot(cx, cy, r, 0, angle);
-      if (Math.random() < 0.08) {
-        const c = new VapeCloud(tip.x, tip.y);
-        c.vy = (-Math.random() * 0.3 - 0.05) * baseScale;
-        c.decay = 0.003 + Math.random() * 0.004;
-        c.size = (8 + Math.random() * 10) * baseScale;
-        c.color = 'rgba(200,185,165,ALPHA)';
-        particles.push(c);
+      if (Math.random() < 0.04) {
+        const p = {
+          x: tip.x + (Math.random() - 0.5) * 2 * baseScale,
+          y: tip.y,
+          vx: (Math.random() - 0.5) * 0.15 * baseScale,
+          vy: (-Math.random() * 0.6 - 0.2) * baseScale,
+          size: (2 + Math.random() * 4) * baseScale,
+          life: 1,
+          decay: 0.006 + Math.random() * 0.005,
+          phase: Math.random() * Math.PI * 2,
+        };
+        particles.push({
+          update() {
+            this.x += this.vx + Math.sin(this.phase) * 0.3 * baseScale;
+            this.y += this.vy;
+            this.vy *= 0.995;
+            this.vx *= 0.99;
+            this.life -= this.decay;
+            this.phase += 0.02;
+            this.size *= 0.998;
+          },
+          draw(ctx) {
+            if (this.life <= 0) return;
+            const a = Math.min(this.life * 1.5, 0.2);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(180,180,190,${a})`;
+            ctx.fill();
+          }
+        });
       }
     }
 
@@ -515,7 +538,7 @@ const Interactions = (() => {
 
     if (remaining > 0) {
       const grdF = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
-      grdF.addColorStop(0, '#c4956a'); grdF.addColorStop(0.5, '#b8865a'); grdF.addColorStop(1, '#a0774a');
+      grdF.addColorStop(0, '#8b5e3c'); grdF.addColorStop(0.5, '#7a4e2e'); grdF.addColorStop(1, '#6b3f1f');
       ctx.fillStyle = grdF;
       ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
       const grdP = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
@@ -560,7 +583,7 @@ const Interactions = (() => {
         const a = Math.random() * Math.PI * 2;
         particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
       }
-      bubbleSoap = Math.max(0, bubbleSoap - 0.008);
+       bubbleSoap = Math.max(0, bubbleSoap - 0.004);
     }
     ctx.save(); ctx.translate(cx, cy);
     ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
@@ -591,14 +614,12 @@ const Interactions = (() => {
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#22222e';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
-    const liquidH = (vapeLiquid / 100) * 35 * s;
-    const grdL = ctx.createLinearGradient(0, 55 * s - liquidH, 0, 55 * s);
-    grdL.addColorStop(0, 'rgba(0,200,255,0.4)');
-    grdL.addColorStop(1, 'rgba(0,200,255,0.1)');
-    ctx.fillStyle = grdL;
-    ctx.roundRect(-10 * s, 55 * s - liquidH, 20 * s, liquidH, 3 * s); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,200,255,0.3)'; ctx.lineWidth = 1;
-    ctx.roundRect(-10 * s, 20 * s, 20 * s, 35 * s, 3 * s); ctx.stroke();
+    const liquidH = (vapeLiquid / 100) * 40 * s;
+    const barX = 14 * s, barW = 3 * s, barY = 18 * s;
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.roundRect(barX, barY, barW, 40 * s, 1.5 * s); ctx.fill();
+    ctx.fillStyle = 'rgba(0,200,255,0.5)';
+    ctx.roundRect(barX, barY + 40 * s - liquidH, barW, liquidH, 1.5 * s); ctx.fill();
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
@@ -615,7 +636,7 @@ const Interactions = (() => {
     ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
     if (vapePuffing) {
-      vapeLiquid = Math.max(0, vapeLiquid - 0.003);
+      vapeLiquid = Math.max(0, vapeLiquid - 0.0015);
       if (Math.random() < 0.35) {
         particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 24 * s));
       }

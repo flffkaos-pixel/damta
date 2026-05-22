@@ -8,7 +8,7 @@ body {
   user-select: none;
   -webkit-user-select: none;
 }
-#app { display: flex; flex-direction: column; height: 100vh; padding-top: 8px; }
+#app { display: flex; flex-direction: column; height: 100vh; padding-top: 20px; }
 
 #header {
   display: flex; align-items: center; justify-content: space-between;
