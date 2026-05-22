@@ -24,7 +24,11 @@ const Interactions = (() => {
 
   let baseScale = 1;
 
-  function calcScale() { baseScale = Math.min(W, H) / 190; }
+  function calcScale() {
+    const sMax = Math.min(W, H) / 200;
+    const fit = Math.min(W * 0.75 / (120 * 0.866), H * 0.7 / 170);
+    baseScale = Math.max(0.5, Math.min(sMax, fit));
+  }
 
   class Smoke {
     constructor(x, y, opts = {}) {
@@ -384,7 +388,8 @@ const Interactions = (() => {
 
   function handleCandle() {
     candle.lit = !candle.lit;
-    const cx = W / 2, cy2 = H * 0.62, ch = Math.max(candle.height - candle.melt, 10);
+    const s = baseScale;
+    const cx = W / 2, cy2 = H * 0.5 + 75 * s, ch = Math.max(candle.height - candle.melt, 10);
     if (candle.lit) {
       candleFlame = new Flame(cx, cy2 - ch - 6, { size: 14, permanent: true, color: [255, 200, 80] });
     } else {
@@ -395,7 +400,7 @@ const Interactions = (() => {
   function handleCampfire() {
     campfire.lit = !campfire.lit;
     if (campfire.lit) {
-      const cx = W / 2, cy = H * 0.62;
+      const cx = W / 2, cy = H * 0.5 + 10 * baseScale;
       campfire.flames = [];
       for (let i = 0; i < 7; i++) {
         campfire.flames.push(new Flame(
@@ -468,7 +473,7 @@ const Interactions = (() => {
   // ═════════════ CIGARETTE ═════════════
   function updateCigarette() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.5;
+    const cx = W / 2 - 50 * s, cy = H * 0.5 + 30 * s;
     const cigLen = 120 * s, cigW = 16 * s;
     const angle = -Math.PI / 6;
 
@@ -534,7 +539,7 @@ const Interactions = (() => {
   // ═════════════ BUBBLE ═════════════
   function updateBubble() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.5;
+    const cx = W / 2, cy = H * 0.5 + 10 * s;
     const wandX = cx, wandY = cy - 20 * s;
     if (isPressed) {
       for (let i = 0; i < 3; i++) {
@@ -564,7 +569,7 @@ const Interactions = (() => {
   // ═════════════ VAPE ═════════════
   function updateVape() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.5;
+    const cx = W / 2, cy = H * 0.5 - 30 * s;
     ctx.save(); ctx.translate(cx, cy);
     ctx.fillStyle = '#1a1a24';
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
@@ -602,7 +607,7 @@ const Interactions = (() => {
   // ═════════════ MATCH ═════════════
   function updateMatch() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.5;
+    const cx = W / 2 - 28 * s, cy = H * 0.5 - 28 * s;
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4);
     const stickLen = 80 * s;
     const headX = stickLen;
@@ -658,7 +663,7 @@ const Interactions = (() => {
   // ═════════════ CANDLE ═════════════
   function updateCandle() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.6;
+    const cx = W / 2, cy = H * 0.5 + 75 * s;
     const candleW = 24 * s;
     let candleH = Math.max(candle.height - candle.melt, 10) * s;
 
@@ -698,7 +703,7 @@ const Interactions = (() => {
   // ═════════════ CAMPFIRE ═════════════
   function updateCampfire() {
     const s = baseScale;
-    const cx = W / 2, cy = H * 0.6;
+    const cx = W / 2, cy = H * 0.5 + 10 * s;
 
     ctx.save(); ctx.translate(cx, cy);
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
