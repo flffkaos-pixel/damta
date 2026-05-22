@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>onlinedamta</title>
+    <link>https://onlinedamta.fly.dev/</link>
+    <description>온라인 담타 - 함께하는 감성 불멍, 담배, 버블, 캔들</description>
+    <language>ko</language>
+    <lastBuildDate>Fri, 22 May 2026 00:00:00 +0900</lastBuildDate>
+    <atom:link href="https://onlinedamta.fly.dev/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>onlinedamta - 온라인 감성 체험</title>
+      <link>https://onlinedamta.fly.dev/</link>
+      <description>담배, 버블, 전자담배, 성냥, 캔들, 캠프파이어를 실시간으로 즐기는 인터랙티브 공간</description>
+      <pubDate>Fri, 22 May 2026 00:00:00 +0900</pubDate>
+    </item>
+  </channel>
+</rss>

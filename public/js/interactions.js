@@ -264,7 +264,7 @@ const Interactions = (() => {
     match = { burning: false, burn: 0, maxBurn: 100, done: false, total: match.total || 0 };
     candle = { lit: false, melt: 0, height: 150, total: candle.total || 0 };
     candleFlame = null;
-    campfire = { lit: false, flames: [], sparksTimer: 0, total: campfire.total || 0 };
+    campfire = { lit: false, flames: [], sparksTimer: 0, total: campfire.total || 0, wood: 200 };
     vapePuffing = false;
     vapeLiquid = 100;
     bubbleSoap = 100;
@@ -817,45 +817,49 @@ const Interactions = (() => {
     const s = baseScale;
     const cx = W / 2, cy = H * 0.5 + 10 * s;
 
+    const woodRatio = Math.max(0, campfire.wood / 200);
     ctx.save(); ctx.translate(cx, cy);
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.beginPath(); ctx.ellipse(0, 14 * s, 65 * s, 14 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 14 * s, 65 * s * woodRatio, 14 * s * woodRatio, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#3a2510';
-    ctx.roundRect(-45 * s, -20 * s, 90 * s, 14 * s, 4 * s); ctx.fill();
+    ctx.roundRect(-45 * s * woodRatio, -20 * s * woodRatio, 90 * s * woodRatio, 14 * s * woodRatio, 4 * s * woodRatio); ctx.fill();
     ctx.strokeStyle = 'rgba(80,50,20,0.25)';
     for (let r = 0; r < 5; r++) {
-      const rx = -38 * s + r * 20 * s;
-      ctx.beginPath(); ctx.arc(rx, -6 * s, 3.5 * s, 0, Math.PI); ctx.stroke();
+      const rx = (-38 + r * 20) * s * woodRatio;
+      ctx.beginPath(); ctx.arc(rx, -6 * s * woodRatio, 3.5 * s * woodRatio, 0, Math.PI); ctx.stroke();
     }
     ctx.save(); ctx.rotate(0.15);
     ctx.fillStyle = '#4a3020';
-    ctx.roundRect(-40 * s, -14 * s, 80 * s, 12 * s, 3 * s); ctx.fill();
+    ctx.roundRect(-40 * s * woodRatio, -14 * s * woodRatio, 80 * s * woodRatio, 12 * s * woodRatio, 3 * s * woodRatio); ctx.fill();
     ctx.restore();
     ctx.save(); ctx.rotate(-0.12);
     ctx.fillStyle = '#3d2818';
-    ctx.roundRect(-42 * s, -12 * s, 84 * s, 10 * s, 3 * s); ctx.fill();
+    ctx.roundRect(-42 * s * woodRatio, -12 * s * woodRatio, 84 * s * woodRatio, 10 * s * woodRatio, 3 * s * woodRatio); ctx.fill();
     ctx.restore();
     ctx.save(); ctx.rotate(0.3);
     ctx.fillStyle = '#4a3520';
-    ctx.roundRect(-28 * s, -7 * s, 56 * s, 8 * s, 2 * s); ctx.fill();
+    ctx.roundRect(-28 * s * woodRatio, -7 * s * woodRatio, 56 * s * woodRatio, 8 * s * woodRatio, 2 * s * woodRatio); ctx.fill();
     ctx.restore();
     ctx.save(); ctx.rotate(-0.25);
     ctx.fillStyle = '#3d2818';
-    ctx.roundRect(-30 * s, -6 * s, 60 * s, 8 * s, 2 * s); ctx.fill();
+    ctx.roundRect(-30 * s * woodRatio, -6 * s * woodRatio, 60 * s * woodRatio, 8 * s * woodRatio, 2 * s * woodRatio); ctx.fill();
     ctx.restore();
-    ctx.beginPath(); ctx.arc(0, -5 * s, 25 * s, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(0, -5 * s * woodRatio, 25 * s * woodRatio, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,80,20,0.04)'; ctx.fill();
     ctx.restore();
 
     if (campfire.lit) {
       for (let i = campfire.flames.length - 1; i >= 0; i--) {
+        campfire.flames[i].maxSize = (18 + 28 * woodRatio) * s * woodRatio;
         campfire.flames[i].update(); campfire.flames[i].draw(ctx);
       }
       campfire.sparksTimer++;
-      if (campfire.sparksTimer % 3 === 0) {
-        for (let i = 0; i < 3; i++) particles.push(new Spark(cx, cy - 5 * s));
+      campfire.wood -= 0.02;
+      if (campfire.wood <= 0) { campfire.lit = false; campfire.flames = []; endSession(); return; }
+      if (campfire.sparksTimer % Math.max(3, 12 - woodRatio * 9) === 0) {
+        for (let i = 0; i < 1 + woodRatio * 2; i++) particles.push(new Spark(cx, cy - 5 * s));
       }
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.2 * woodRatio) {
         particles.push(new Smoke(cx + (Math.random() - 0.5) * 45 * s, cy - 35 * s, { vy: 0.6, size: 8 * s, color: 'rgba(180,160,140,ALPHA)' }));
       }
     }
