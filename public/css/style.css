@@ -42,6 +42,15 @@ body {
 #stats-bar strong { color: #f0a050; }
 #timer-display { color: #f0a050; font-weight: 600; font-size: 12px; min-width: 40px; text-align: center; }
 
+#totals-bar {
+  display: flex; align-items: center; justify-content: center;
+  padding: 1px 10px; font-size: 9px; color: #584c40;
+  background: rgba(20,18,25,0.4);
+  border-bottom: 1px solid rgba(255,200,150,0.03);
+  flex-shrink: 0;
+}
+#totals { letter-spacing: 1px; }
+
 #main { display: flex; flex: 1; overflow: hidden; position: relative; }
 
 #canvas-wrap {
@@ -86,6 +95,7 @@ body {
   .interact-btn { font-size: 13px; padding: 2px 6px; }
   #stats-bar { font-size: 9px; gap: 8px; padding: 2px 6px; }
   #timer-display { font-size: 10px; }
+  #totals-bar { font-size: 8px; padding: 1px 6px; }
   #chat-bar { bottom: 6px; left: 6px; right: 6px; }
   #chat-input { font-size: 11px; padding: 5px 10px; }
   #chat-send { font-size: 10px; padding: 5px 10px; }

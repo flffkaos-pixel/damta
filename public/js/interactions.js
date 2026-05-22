@@ -12,17 +12,19 @@ const Interactions = (() => {
   let sessionTime = 0;
   let sessionDuration = 300 + Math.floor(Math.random() * 120);
 
-  let cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, totalSmoked: 0 };
-  let match = { burning: false, burn: 0, maxBurn: 100, done: false };
-  let candle = { lit: false, melt: 0, height: 80 };
+  let cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, total: 0 };
+  let match = { burning: false, burn: 0, maxBurn: 100, done: false, total: 0 };
+  let candle = { lit: false, melt: 0, height: 150, total: 0 };
   let candleFlame = null;
-  let campfire = { lit: false, flames: [], sparksTimer: 0 };
+  let campfire = { lit: false, flames: [], sparksTimer: 0, total: 0 };
   let vapePuffing = false;
   let vapeLiquid = 100;
+  let vape = { total: 0 };
+  let bubble = { total: 0 };
 
   let baseScale = 1;
 
-  function calcScale() { baseScale = Math.min(W, H) / 320; }
+  function calcScale() { baseScale = Math.min(W, H) / 190; }
 
   class Smoke {
     constructor(x, y, opts = {}) {
@@ -215,12 +217,11 @@ const Interactions = (() => {
       this.nickname = nickname;
       this.text = text;
       this.life = 1;
-      this.decay = 0.004 + Math.random() * 0.003;
-      this.x = 20 + Math.random() * (W - 60);
-      this.y = H * 0.3 + Math.random() * H * 0.2;
-      this.vy = (-0.15 - Math.random() * 0.2) * baseScale;
-      this.vx = (Math.random() - 0.5) * 0.1 * baseScale;
-      this.alpha = 0.8;
+      this.decay = 0.002 + Math.random() * 0.002;
+      this.x = 10 + Math.random() * Math.max(W - 80, 100);
+      this.y = H * 0.25 + Math.random() * H * 0.25;
+      this.vy = (-0.2 - Math.random() * 0.25) * baseScale;
+      this.vx = (Math.random() - 0.5) * 0.08 * baseScale;
     }
     update() {
       this.x += this.vx;
@@ -230,33 +231,40 @@ const Interactions = (() => {
     }
     draw(ctx) {
       if (this.life <= 0) return;
-      const alpha = Math.min(this.life * 2, 0.8);
+      const alpha = Math.min(this.life * 2, 0.85);
       const s = baseScale;
-      ctx.font = `bold ${13 * s}px -apple-system, sans-serif`;
-      const text = `${this.nickname}: ${this.text}`;
-      const m = ctx.measureText(text);
-      const tw = Math.min(m.width, W * 0.7);
-      const tx = Math.max(10, Math.min(this.x, W - tw - 10));
-      ctx.fillStyle = `rgba(240,160,80,${alpha * 0.8})`;
-      ctx.fillText(this.nickname, tx, this.y);
-      const nw = ctx.measureText(this.nickname + ': ').width;
-      ctx.fillStyle = `rgba(200,185,165,${alpha * 0.7})`;
-      ctx.fillText(': ' + this.text, tx + ctx.measureText(this.nickname).width, this.y);
+      ctx.font = `bold ${14 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      const nickW = ctx.measureText(this.nickname + ': ').width;
+      const fullText = this.nickname + ': ' + this.text;
+      const m = ctx.measureText(fullText);
+      const tw = Math.min(m.width, W * 0.75);
+      const tx = Math.max(8, Math.min(this.x, W - tw - 8));
+      ctx.fillStyle = `rgba(240,160,80,${alpha * 0.85})`;
+      ctx.fillText(this.nickname + ':', tx, this.y);
+      ctx.fillStyle = `rgba(220,205,185,${alpha * 0.75})`;
+      ctx.fillText(this.text, tx + ctx.measureText(this.nickname + ': ').width, this.y);
     }
   }
 
+  function updateTotals() {
+    const el = document.getElementById('totals');
+    if (!el) return;
+    el.textContent = `🚬${cig.total}  🫧${bubble.total}  💨${vape.total}  🔥${match.total}  🕯️${candle.total}  🔥${campfire.total}`;
+  }
+
   function resetState() {
-    cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, totalSmoked: cig.totalSmoked || 0 };
-    match = { burning: false, burn: 0, maxBurn: 100, done: false };
-    candle = { lit: false, melt: 0, height: 80 };
+    cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
+    match = { burning: false, burn: 0, maxBurn: 100, done: false, total: match.total || 0 };
+    candle = { lit: false, melt: 0, height: 150, total: candle.total || 0 };
     candleFlame = null;
-    campfire = { lit: false, flames: [], sparksTimer: 0 };
+    campfire = { lit: false, flames: [], sparksTimer: 0, total: campfire.total || 0 };
     vapePuffing = false;
     vapeLiquid = 100;
     particles = [];
     sessionActive = false;
     sessionTime = 0;
     document.getElementById('restart-btn').classList.add('hidden');
+    updateTotals();
   }
 
   function init(cvs) {
@@ -266,6 +274,7 @@ const Interactions = (() => {
     window.addEventListener('resize', resize);
     setupEvents();
     animate();
+    updateTotals();
   }
 
   function resize() {
@@ -286,6 +295,7 @@ const Interactions = (() => {
     document.querySelectorAll('.interact-btn').forEach(b => b.classList.remove('active'));
     const btn = document.querySelector(`.interact-btn[data-mode="${newMode}"]`);
     if (btn) btn.classList.add('active');
+    updateTotals();
   }
 
   function getPos(e) {
@@ -303,17 +313,22 @@ const Interactions = (() => {
 
   function endSession() {
     sessionActive = false;
-    if (mode === 'cigarette' && cig.totalSmoked > 0) {
-      socket.emit('cigarette-done');
+    if (mode === 'cigarette' && cig.done) {
+      cig.total++; socket.emit('cigarette-done');
     }
+    if (mode === 'bubble') bubble.total++;
+    if (mode === 'vape') vape.total++;
+    if (mode === 'match' && match.done) match.total++;
+    if (mode === 'candle' && !candle.lit) candle.total++;
+    if (mode === 'campfire' && !campfire.lit) campfire.total++;
     document.getElementById('restart-btn').classList.remove('hidden');
+    updateTotals();
   }
 
   document.getElementById('restart-btn').addEventListener('click', () => {
     resetState();
-    if (mode === 'cigarette') {
-      cig.totalSmoked = (cig.totalSmoked || 0) + 1;
-    }
+    if (mode === 'cigarette') cig.total++;
+    updateTotals();
   });
 
   function setupEvents() {
@@ -338,17 +353,13 @@ const Interactions = (() => {
         if (!sessionActive) startSession();
       }
     }
-    function onMove(e) {
-      e.preventDefault();
-    }
+    function onMove(e) { e.preventDefault(); }
     function onUp(e) {
       e.preventDefault();
-      const t = Date.now();
-      if (mode === 'cigarette' && cig.lit && !cig.done && (t - pressStart) < 300) {
+      if (mode === 'cigarette' && cig.lit && !cig.done && (Date.now() - pressStart) < 300) {
         const angle = -Math.PI / 6;
-        const visRemaining = cigLen * (1 - cig.burn / cig.maxBurn);
-        const cx = W / 2, cy = H * 0.5;
-        const tip = rot(cx, cy, visRemaining, 0, angle);
+        const visRemaining = 120 * baseScale * (1 - cig.burn / cig.maxBurn);
+        const tip = rot(W / 2, H * 0.5, visRemaining, 0, angle);
         for (let i = 0; i < 8; i++) particles.push(new Ash(tip.x, tip.y));
         cig.ash = 0;
       }
@@ -398,8 +409,6 @@ const Interactions = (() => {
     }
   }
 
-  let cigLen; // used in onUp
-
   function animate() {
     ctx.clearRect(0, 0, W, H);
 
@@ -407,7 +416,8 @@ const Interactions = (() => {
       sessionTime += 1 / 60;
       const m = Math.floor(sessionTime / 60);
       const sec = Math.floor(sessionTime % 60);
-      document.getElementById('timer-display').textContent = `⏱️ ${m}:${sec.toString().padStart(2, '0')}`;
+      const el = document.getElementById('timer-display');
+      if (el) el.textContent = `⏱️ ${m}:${sec.toString().padStart(2, '0')}`;
       if (sessionTime >= sessionDuration) {
         if (mode === 'cigarette') { cig.lit = false; cig.done = true; }
         if (mode === 'match') { match.burning = false; match.done = true; }
@@ -459,25 +469,22 @@ const Interactions = (() => {
   function updateCigarette() {
     const s = baseScale;
     const cx = W / 2, cy = H * 0.5;
-    cigLen = 120 * s; const cigW = 16 * s;
+    const cigLen = 120 * s, cigW = 16 * s;
     const angle = -Math.PI / 6;
 
     if (cig.lit && !cig.done) {
       cig.burn += 0.004 + (isPressed ? 0.001 : 0);
       cig.ash += 0.003 + (isPressed ? 0.001 : 0);
-      if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; cig.totalSmoked = (cig.totalSmoked || 0) + 1; endSession(); }
+      if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; endSession(); }
       if (cig.ash >= cig.maxAsh) {
-        const visRemaining = cigLen * (1 - cig.burn / cig.maxBurn);
-        const t = rot(cx, cy, visRemaining, 0, angle);
+        const r = cigLen * (1 - cig.burn / cig.maxBurn);
+        const t = rot(cx, cy, r, 0, angle);
         for (let i = 0; i < 5; i++) particles.push(new Ash(t.x, t.y));
         cig.ash = 0;
       }
-      const visRemaining = cigLen * (1 - cig.burn / cig.maxBurn);
-      const tip = rot(cx, cy, visRemaining, 0, angle);
-      // Less smoke, bigger particles (like vape)
-      if (Math.random() < 0.08) {
-        particles.push(new VapeCloud(tip.x, tip.y));
-      }
+      const r = cigLen * (1 - cig.burn / cig.maxBurn);
+      const tip = rot(cx, cy, r, 0, angle);
+      if (Math.random() < 0.08) particles.push(new VapeCloud(tip.x, tip.y));
     }
 
     const burnRatio = cig.done ? 1 : (cig.burn / cig.maxBurn);
@@ -488,17 +495,14 @@ const Interactions = (() => {
     ctx.rotate(angle);
 
     if (remaining > 0) {
-      // Filter — brown
       const grdF = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
       grdF.addColorStop(0, '#6b4423'); grdF.addColorStop(0.5, '#5a3a1e'); grdF.addColorStop(1, '#4a3018');
       ctx.fillStyle = grdF;
       ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
-      // Paper
       const grdP = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
       grdP.addColorStop(0, '#f2ece0'); grdP.addColorStop(0.5, '#faf6ee'); grdP.addColorStop(1, '#e8e0d0');
       ctx.fillStyle = grdP;
       ctx.roundRect(24 * s, -cigW / 2, remaining - 24 * s, cigW, 1); ctx.fill();
-      // Ash
       if (cig.ash > 3) {
         const ashH = Math.min(cig.ash / cig.maxAsh * cigW * 0.5, cigW * 0.4);
         ctx.fillStyle = 'rgba(100,85,70,0.6)';
@@ -507,7 +511,6 @@ const Interactions = (() => {
       }
     }
 
-    // Burning tip glow — vertical ellipse (90° rotated)
     if (cig.lit && !cig.done) {
       const tipX = remaining;
       const grd = ctx.createRadialGradient(tipX, 0, 0, tipX, 0, 10 * s);
@@ -546,6 +549,15 @@ const Interactions = (() => {
     ctx.beginPath(); ctx.arc(0, -20 * s, 14 * s, 0, Math.PI * 2); ctx.stroke();
     ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
     ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
+    // Soap bottle
+    ctx.save(); ctx.translate(-35 * s, 50 * s);
+    ctx.strokeStyle = 'rgba(200,220,255,0.25)'; ctx.lineWidth = 1.5 * s;
+    ctx.strokeRect(-12 * s, -22 * s, 24 * s, 30 * s, 3 * s);
+    ctx.strokeStyle = 'rgba(200,220,255,0.1)';
+    ctx.strokeRect(-9 * s, -8 * s, 18 * s, 14 * s, 2 * s);
+    ctx.fillStyle = 'rgba(200,220,255,0.06)';
+    ctx.fillRect(-9 * s, -8 * s, 18 * s, 14 * s);
+    ctx.restore();
     ctx.restore();
   }
 
@@ -579,7 +591,6 @@ const Interactions = (() => {
     ctx.fillStyle = '#4a4a58';
     ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
-
     if (vapePuffing) {
       vapeLiquid = Math.max(0, vapeLiquid - 0.02);
       if (Math.random() < 0.35) {
@@ -620,17 +631,14 @@ const Interactions = (() => {
       const flSize = (10 - burnRatio * 5) * s;
       const flame = new Flame(flameX, -8 * s, { size: Math.max(flSize, 2 * s), color: [255, 180 - burnRatio * 80, 50 - burnRatio * 30] });
       flame.update(); flame.draw(ctx);
-      // Ember glow — vertical ellipse
       ctx.beginPath(); ctx.ellipse(flameX, 0, 2 * s, 5 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255,100,30,0.5)'; ctx.fill();
-      // Ash fall — in world coordinates
       if (Math.random() < 0.08) {
-        const wp = rot(cx, cy, flameX, 2 * s, Math.PI / 4);
-        particles.push(new Ash(wp.x, wp.y));
+        particles.push(new Ash(rot(cx, cy, flameX, 2 * s, Math.PI / 4).x, rot(cx, cy, flameX, 2 * s, Math.PI / 4).y));
       }
       if (Math.random() < 0.2) {
-        const wp = rot(cx, cy, flameX, -12 * s, Math.PI / 4);
-        particles.push(new Smoke(wp.x, wp.y, { vy: 0.5, size: 2.5 * s, color: 'rgba(255,200,150,ALPHA)' }));
+        const p = rot(cx, cy, flameX, -12 * s, Math.PI / 4);
+        particles.push(new Smoke(p.x, p.y, { vy: 0.5, size: 2.5 * s, color: 'rgba(255,200,150,ALPHA)' }));
       }
       if (burnedLen > 3 * s) {
         const grd = ctx.createLinearGradient(headX - burnedLen, 0, headX, 0);
@@ -675,7 +683,7 @@ const Interactions = (() => {
     ctx.restore();
 
     if (candle.lit && candleFlame) {
-      candle.melt += 0.0035;
+      candle.melt += 0.006;
       if (candleH <= 10 * s) { candle.lit = false; candleFlame = null; endSession(); return; }
       const cx2 = cx + Math.sin(Date.now() * 0.003) * 1.5 * s;
       const cy2 = cy - candleH - 8 * s;
@@ -740,7 +748,7 @@ const Interactions = (() => {
 
   function addChatMsg(nickname, text) {
     chatMessages.push(new ChatMsg(nickname, text));
-    if (chatMessages.length > 20) chatMessages.shift();
+    if (chatMessages.length > 30) chatMessages.shift();
   }
 
   if (!CanvasRenderingContext2D.prototype.roundRect) {

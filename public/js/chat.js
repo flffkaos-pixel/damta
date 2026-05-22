@@ -1,7 +1,6 @@
 const Chat = (() => {
   let socket = null;
   let nickname = '';
-  let msgCount = 0;
 
   function init() {
     socket = io();
@@ -13,9 +12,8 @@ const Chat = (() => {
     });
 
     socket.on('chat-msg', (data) => {
-      if (window.Interactions && window.Interactions.addChatMsg) {
-        window.Interactions.addChatMsg(data.nickname, data.text);
-      }
+      const I = window.Interactions || Interactions;
+      if (I && I.addChatMsg) I.addChatMsg(data.nickname, data.text);
     });
 
     socket.on('stats', (data) => {
@@ -37,6 +35,11 @@ const Chat = (() => {
 
     if (sendBtn) sendBtn.addEventListener('click', send);
     if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+
+    const checkI = setInterval(() => {
+      const I = window.Interactions || Interactions;
+      if (I && I._setSocket) { I._setSocket(socket); clearInterval(checkI); }
+    }, 100);
   }
 
   return { init: () => { init(); return socket; } };
