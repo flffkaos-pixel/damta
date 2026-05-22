@@ -1,4 +1,4 @@
-app = "mood-play"
+app = "onlinedamta"
 primary_region = "nrt"
 kill_signal = "SIGTERM"
 
