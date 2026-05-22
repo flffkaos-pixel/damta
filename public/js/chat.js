@@ -2,6 +2,7 @@ const Chat = (() => {
   let socket = null;
   let nickname = '';
   let currentRoom = 'rooftop';
+  let msgCount = 0;
 
   function init() {
     socket = io();
@@ -23,6 +24,19 @@ const Chat = (() => {
     socket.on('room-changed', (data) => {
       currentRoom = data.roomId;
     });
+
+    socket.on('stats', (data) => {
+      document.getElementById('stat-online').textContent = data.online;
+      document.getElementById('stat-cigarettes').textContent = data.cigarettes;
+    });
+
+    // Pass socket to interactions
+    const checkInteractions = setInterval(() => {
+      if (window.Interactions && window.Interactions._setSocket) {
+        window.Interactions._setSocket(socket);
+        clearInterval(checkInteractions);
+      }
+    }, 100);
 
     // Chat input
     const input = document.getElementById('chat-input');
@@ -50,30 +64,31 @@ const Chat = (() => {
       });
     });
 
-    // Mobile menu toggle
+    // Mobile chat toggle
     document.getElementById('menu-toggle').addEventListener('click', () => {
       document.getElementById('chat-panel').classList.toggle('open');
     });
+    document.getElementById('chat-close').addEventListener('click', () => {
+      document.getElementById('chat-panel').classList.remove('open');
+    });
   }
-
-  let msgCount = 0;
 
   function addMsg(nick, text, time) {
     const el = document.createElement('div');
     el.className = 'chat-msg';
     el.dataset.index = msgCount++;
     const t = time ? new Date(time).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '';
-    el.innerHTML = `<span class="nick">${escapeHtml(nick)}</span><span class="text">${escapeHtml(text)}</span><span class="time">${t}</span>`;
+    el.innerHTML = `<span class="nick">${escapeHtml(nick)}</span><span class="text">${escapeHtml(text)}</span>`;
     const container = document.getElementById('chat-msgs');
     container.appendChild(el);
     container.scrollTop = container.scrollHeight;
 
-    // Auto-fade after 30 seconds (like damta.world)
+    // Auto-fade after 25 seconds (damta.world style)
     setTimeout(() => {
-      el.style.transition = 'opacity 1s';
+      el.style.transition = 'opacity 1.5s ease-out';
       el.style.opacity = '0';
-      setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1000);
-    }, 30000);
+      setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1500);
+    }, 25000);
   }
 
   function escapeHtml(str) {
@@ -82,5 +97,5 @@ const Chat = (() => {
     return div.innerHTML;
   }
 
-  return { init };
+  return { init: () => { init(); return socket; } };
 })();

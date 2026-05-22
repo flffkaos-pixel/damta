@@ -2,15 +2,15 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Mood Play - 무드 플레이</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>OnlineDamta - 온라인 담타</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div id="app">
   <header id="header">
-    <div class="logo">✨ Mood Play</div>
-    <div class="room-selector">
+    <div class="logo">🚬 OnlineDamta</div>
+    <div class="room-selector" id="room-selector">
       <button class="room-btn active" data-room="rooftop">🌙 옥상</button>
       <button class="room-btn" data-room="cafe">☕ 카페</button>
       <button class="room-btn" data-room="park">🌳 공원</button>
@@ -19,10 +19,15 @@
     </div>
     <div class="user-info">
       <span id="user-nickname"></span>
-      <span id="room-count" class="room-count">0명</span>
+      <button id="menu-toggle" class="menu-toggle">💬</button>
     </div>
-    <button id="menu-toggle" class="menu-toggle">☰</button>
   </header>
+
+  <div id="stats-bar">
+    <span>👥 동시접속 <strong id="stat-online">0</strong>명</span>
+    <span>🚬 오늘 <strong id="stat-cigarettes">0</strong>개비</span>
+    <span id="timer-display">⏱️ 5:00</span>
+  </div>
 
   <div id="main">
     <div id="canvas-wrap">
@@ -30,20 +35,21 @@
       <div id="interaction-hint">
         <span id="hint-text">👆 꾹 누르고 있기</span>
       </div>
+      <button id="restart-btn" class="restart-btn hidden">🔄 다시하기</button>
       <div id="interaction-selector">
-        <button class="interact-btn active" data-mode="cigarette">🚬 담배</button>
-        <button class="interact-btn" data-mode="bubble">🫧 비눗방울</button>
-        <button class="interact-btn" data-mode="vape">💨 전자담배</button>
-        <button class="interact-btn" data-mode="match">🔥 성냥</button>
-        <button class="interact-btn" data-mode="candle">🕯️ 양초</button>
-        <button class="interact-btn" data-mode="campfire">🔥 모닥불</button>
+        <button class="interact-btn active" data-mode="cigarette">🚬</button>
+        <button class="interact-btn" data-mode="bubble">🫧</button>
+        <button class="interact-btn" data-mode="vape">💨</button>
+        <button class="interact-btn" data-mode="match">🔥</button>
+        <button class="interact-btn" data-mode="candle">🕯️</button>
+        <button class="interact-btn" data-mode="campfire">🔥</button>
       </div>
     </div>
 
     <div id="chat-panel">
       <div class="chat-header">
         <span>💬 실시간 채팅</span>
-        <span class="chat-hint">익명 · 자유롭게</span>
+        <button id="chat-close" class="chat-close">✕</button>
       </div>
       <div id="chat-msgs"></div>
       <div class="chat-input-wrap">
