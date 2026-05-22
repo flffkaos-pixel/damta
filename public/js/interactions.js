@@ -489,7 +489,8 @@ const Interactions = (() => {
     if (cig.lit && !cig.done) {
       cig.burn += (0.004 + (isPressed ? 0.006 : 0)) * 1.2;
       cig.ash += (0.003 + (isPressed ? 0.005 : 0)) * 1.2;
-      if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; endSession(); }
+      const filterW = 22 * s;
+      if (cig.burn >= cig.maxBurn || cigLen * (1 - cig.burn / cig.maxBurn) <= filterW + s) { cig.done = true; cig.lit = false; endSession(); }
       if (cig.ash >= cig.maxAsh) {
         const r = cigLen * (1 - cig.burn / cig.maxBurn);
         const t = rot(cx, cy, r, 0, angle);
@@ -606,6 +607,7 @@ const Interactions = (() => {
         }
       }
       bubbleSoap = Math.max(0, bubbleSoap - 0.004);
+      if (bubbleSoap <= 0) { sessionActive = false; endSession(); }
     }
     ctx.save(); ctx.translate(cx, cy);
     ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
@@ -659,6 +661,7 @@ const Interactions = (() => {
     ctx.restore();
     if (vapePuffing) {
       vapeLiquid = Math.max(0, vapeLiquid - 0.0015);
+      if (vapeLiquid <= 0) { vapePuffing = false; sessionActive = false; endSession(); }
       if (Math.random() < 0.35) {
         particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 24 * s));
       }
