@@ -33,52 +33,33 @@ const Interactions = (() => {
     baseScale = Math.max(0.5, Math.min(sMax, fit));
   }
 
-  class SmokeRibbon {
+  class Smoke {
     constructor(x, y) {
       const s = baseScale;
-      this.points = [];
-      for (let i = 0; i < 20; i++) {
-        this.points.push({
-          x: x + (Math.random() - 0.5) * 1.5 * s,
-          y: y - i * (1.5 + Math.random() * 1.5) * s,
-          life: 1 - i / 25,
-        });
-      }
+      this.x = x + (Math.random() - 0.5) * 3 * s;
+      this.y = y;
+      this.vx = (Math.random() - 0.5) * 0.15 * s;
+      this.vy = (-Math.random() * 0.5 - 0.15) * s;
+      this.size = (1.5 + Math.random() * 3) * s;
       this.life = 1;
-      this.decay = 0.004 + Math.random() * 0.004;
+      this.decay = 0.008 + Math.random() * 0.008;
       this.phase = Math.random() * Math.PI * 2;
     }
     update() {
-      this.phase += 0.015;
-      for (let i = this.points.length - 1; i >= 0; i--) {
-        const p = this.points[i];
-        p.x += Math.sin(this.phase + i * 0.5) * 0.2 * baseScale;
-        p.y -= (0.15 + i * 0.008) * baseScale;
-        p.life -= 0.003;
-        if (p.life <= 0) this.points.splice(i, 1);
-      }
+      this.x += this.vx + Math.sin(this.phase) * 0.25 * baseScale;
+      this.y += this.vy;
+      this.vy *= 0.995;
       this.life -= this.decay;
+      this.phase += 0.025;
+      this.size *= 0.998;
     }
     draw(ctx) {
-      if (this.points.length < 3) return;
-      const s = baseScale;
-      for (let i = 1; i < this.points.length - 1; i++) {
-        const p = this.points[i];
-        const alpha = p.life * 0.18;
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y, (2 + i * 0.15) * s, (1 + i * 0.08) * s, Math.sin(this.phase + i) * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(185,185,200,${alpha})`;
-        ctx.fill();
-      }
-      // connect with faint line
+      if (this.life <= 0) return;
+      const a = Math.min(this.life * 1.5, 0.15);
       ctx.beginPath();
-      ctx.moveTo(this.points[0].x, this.points[0].y);
-      for (let i = 1; i < this.points.length; i++) {
-        ctx.lineTo(this.points[i].x, this.points[i].y);
-      }
-      ctx.strokeStyle = `rgba(190,190,210,${this.life * 0.06})`;
-      ctx.lineWidth = (2 + Math.random() * 1.5) * s;
-      ctx.stroke();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(185,185,195,${a})`;
+      ctx.fill();
     }
   }
 
@@ -518,7 +499,7 @@ const Interactions = (() => {
       const r = cigLen * (1 - cig.burn / cig.maxBurn);
       const tip = rot(cx, cy, r, 0, angle);
       if (Math.random() < 0.04) {
-        particles.push(new SmokeRibbon(tip.x, tip.y));
+        particles.push(new Smoke(tip.x, tip.y));
       }
     }
 
@@ -554,7 +535,7 @@ const Interactions = (() => {
       grdF.addColorStop(0, '#bf8740'); grdF.addColorStop(0.2, '#daa858'); grdF.addColorStop(0.45, '#e8b868');
       grdF.addColorStop(0.7, '#daa858'); grdF.addColorStop(0.85, '#c89048'); grdF.addColorStop(1, '#a87030');
       ctx.fillStyle = grdF;
-      ctx.roundRect(0, bodyTop, filterW, cigW, 3 * s); ctx.fill();
+      ctx.roundRect(0, bodyTop, filterW, cigW, [3 * s, 0, 0, 3 * s]); ctx.fill();
       // cork texture: small brown specks
       ctx.fillStyle = 'rgba(140,100,50,0.12)';
       for (let t = 0; t < 16; t++) {
@@ -564,9 +545,9 @@ const Interactions = (() => {
       }
       // cork border lines
       ctx.strokeStyle = 'rgba(80,55,25,0.2)'; ctx.lineWidth = 1.2 * s;
-      ctx.beginPath(); ctx.moveTo(filterW, bodyTop + 3 * s); ctx.lineTo(filterW, bodyBot - 3 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(filterW - 1, bodyTop + 3 * s); ctx.lineTo(filterW - 1, bodyBot - 3 * s); ctx.stroke();
       ctx.strokeStyle = 'rgba(80,55,25,0.1)'; ctx.lineWidth = 0.8 * s;
-      ctx.beginPath(); ctx.moveTo(filterW - 1.5 * s, bodyTop + 4 * s); ctx.lineTo(filterW - 1.5 * s, bodyBot - 4 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(filterW - 2.5 * s, bodyTop + 4 * s); ctx.lineTo(filterW - 2.5 * s, bodyBot - 4 * s); ctx.stroke();
 
       // ── ash ──
       if (cig.ash > 2 || (cig.lit && !cig.done)) {
@@ -606,7 +587,7 @@ const Interactions = (() => {
       const grdF = ctx.createLinearGradient(0, bodyTop, 0, bodyBot);
       grdF.addColorStop(0, '#a07030'); grdF.addColorStop(0.5, '#c08840'); grdF.addColorStop(1, '#906028');
       ctx.fillStyle = grdF;
-      ctx.roundRect(0, bodyTop, filterW, cigW, 3 * s); ctx.fill();
+      ctx.roundRect(0, bodyTop, filterW, cigW, [3 * s, 0, 0, 3 * s]); ctx.fill();
       ctx.fillStyle = 'rgba(120,80,40,0.12)';
       for (let t = 0; t < 6; t++) {
         ctx.beginPath(); ctx.arc(Math.random() * filterW, bodyTop + Math.random() * cigW, (0.3 + Math.random() * 0.6) * s, 0, Math.PI * 2); ctx.fill();
@@ -668,7 +649,7 @@ const Interactions = (() => {
     const barX = 14 * s, barW = 3 * s, barY = 18 * s;
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.roundRect(barX, barY, barW, 40 * s, 1.5 * s); ctx.fill();
-    ctx.fillStyle = 'rgba(0,200,255,0.5)';
+    ctx.fillStyle = 'rgba(255,180,60,0.5)';
     ctx.roundRect(barX, barY + 40 * s - liquidH, barW, liquidH, 1.5 * s); ctx.fill();
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
@@ -732,7 +713,7 @@ const Interactions = (() => {
       }
       if (Math.random() < 0.2) {
         const p = rot(cx, cy, flameX, -12 * s, Math.PI / 4);
-        particles.push(new SmokeRibbon(p.x, p.y));
+        particles.push(new Smoke(p.x, p.y));
       }
       if (burnedLen > 3 * s) {
         const grd = ctx.createLinearGradient(headX - burnedLen, 0, headX, 0);
@@ -785,7 +766,7 @@ const Interactions = (() => {
       const flameSizeRatio = Math.max(candleH / (candle.height * s), 0.2);
       candleFlame.maxSize = 14 * s * flameSizeRatio;
       candleFlame.update(); candleFlame.draw(ctx);
-      if (Math.random() < 0.1) particles.push(new SmokeRibbon(cx2, cy2 - 12 * s));
+      if (Math.random() < 0.1) particles.push(new Smoke(cx2, cy2 - 12 * s));
     }
   }
 
@@ -837,7 +818,7 @@ const Interactions = (() => {
         for (let i = 0; i < 1 + woodRatio * 2; i++) particles.push(new Spark(cx, cy - 5 * s));
       }
       if (Math.random() < 0.2 * woodRatio) {
-        particles.push(new SmokeRibbon(cx + (Math.random() - 0.5) * 45 * s, cy - 35 * s));
+        particles.push(new Smoke(cx + (Math.random() - 0.5) * 45 * s, cy - 35 * s));
       }
     }
   }
