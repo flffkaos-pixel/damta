@@ -3,63 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-<title>OnlineDamta - 온라인 담타</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>온라인 담타 — 다같이 온라인 담배 타임 실시간 채팅 커뮤니티</title>
+<meta name="description" content="온라인 담타는 비흡연자들을 위한 실시간 소셜 커뮤니티입니다. 가상 담배를 피우며 전국 각지의 사람들과 소근소근 대화를 나눠보세요.">
+<meta name="keywords" content="온라인담타, 담타, 담배타임, 실시간채팅, 익명채팅, 소셜커뮤니티">
+<meta property="og:title" content="온라인 담타 — 다같이 담배 타임">
+<meta property="og:description" content="비흡연자들을 위한 실시간 소셜 커뮤니티. 가상 담배를 피우며 전국 각지의 사람들과 소근소근 대화하세요.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="온라인 담타">
+<meta property="og:locale" content="ko_KR">
+<meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="css/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "온라인 담타",
+  "alternateName": "Online Damta",
+  "url": "https://onlinedamta.fly.dev",
+  "description": "비흡연자들을 위한 실시간 소셜 커뮤니티",
+  "applicationCategory": "SocialNetworkingApplication",
+  "operatingSystem": "Web Browser",
+  "inLanguage": "ko",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+}
+</script>
 </head>
 <body>
 <div id="app">
   <header id="header">
     <div class="logo">🚬 OnlineDamta</div>
-    <div class="room-selector" id="room-selector">
-      <button class="room-btn active" data-room="rooftop">🌙 옥상</button>
-      <button class="room-btn" data-room="cafe">☕ 카페</button>
-      <button class="room-btn" data-room="park">🌳 공원</button>
-      <button class="room-btn" data-room="room">🛋️ 방</button>
-      <button class="room-btn" data-room="beach">🌊 바닷가</button>
+    <div id="interact-row">
+      <button class="interact-btn active" data-mode="cigarette">🚬</button>
+      <button class="interact-btn" data-mode="bubble">🫧</button>
+      <button class="interact-btn" data-mode="vape">💨</button>
+      <button class="interact-btn" data-mode="match">🔥</button>
+      <button class="interact-btn" data-mode="candle">🕯️</button>
+      <button class="interact-btn" data-mode="campfire">🔥</button>
     </div>
-    <div class="user-info">
-      <span id="user-nickname"></span>
-      <button id="menu-toggle" class="menu-toggle">💬</button>
-    </div>
+    <div class="user-info"><span id="user-nickname"></span></div>
   </header>
-
   <div id="stats-bar">
-    <span>👥 <strong id="stat-online">0</strong>명</span>
-    <span>🚬 오늘 <strong id="stat-cigarettes">0</strong>개비</span>
-    <span id="timer-display">⏱️ 5:00</span>
+    <span>👥 <strong id="stat-online">0</strong></span>
+    <span>🚬 <strong id="stat-cigarettes">0</strong></span>
+    <span id="timer-display">⏱️</span>
   </div>
-
   <div id="main">
     <div id="canvas-wrap">
       <canvas id="main-canvas"></canvas>
-      <div id="interaction-hint">
-        <span id="hint-text">👆 꾹 누르고 있기</span>
-      </div>
-      <button id="restart-btn" class="restart-btn hidden">🔄 다시하기</button>
-      <div id="interaction-selector">
-        <button class="interact-btn active" data-mode="cigarette">🚬</button>
-        <button class="interact-btn" data-mode="bubble">🫧</button>
-        <button class="interact-btn" data-mode="vape">💨</button>
-        <button class="interact-btn" data-mode="match">🔥</button>
-        <button class="interact-btn" data-mode="candle">🕯️</button>
-        <button class="interact-btn" data-mode="campfire">🔥</button>
-      </div>
-    </div>
-
-    <div id="chat-panel">
-      <div class="chat-header">
-        <span>💬 실시간 채팅</span>
-        <button id="chat-close" class="chat-close">✕</button>
-      </div>
-      <div id="chat-msgs"></div>
-      <div class="chat-input-wrap">
-        <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." maxlength="500" autocomplete="off">
+      <div id="chat-bar">
+        <input type="text" id="chat-input" placeholder="메시지 입력..." maxlength="500" autocomplete="off">
         <button id="chat-send">전송</button>
       </div>
+      <button id="restart-btn" class="hidden">🔄</button>
     </div>
   </div>
 </div>
-
+<div style="display:none" aria-hidden="true">
+  <h1>온라인 담타 — 다같이 담배 타임</h1>
+  <p>온라인 담타는 비흡연자들을 위한 실시간 소셜 커뮤니티입니다. 가상 담배를 피우며 전국 각지의 사람들과 대화를 나눠보세요.</p>
+  <h2>주요 기능</h2>
+  <ul>
+    <li>인터랙티브 담배 시뮬레이션 — 화면을 터치하여 가상 담배를 태워보세요</li>
+    <li>실시간 익명 채팅 — 회원가입 없이 바로 대화에 참여</li>
+    <li>비눗방울, 전자담배, 성냥, 양초, 모닥불 등 다양한 인터랙션</li>
+    <li>모바일 최적화 — 스마트폰에서도 쾌적한 사용 경험</li>
+  </ul>
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/interactions.js"></script>
 <script src="js/chat.js"></script>
