@@ -13,7 +13,7 @@ const Interactions = (() => {
   let sessionDuration = 300 + Math.floor(Math.random() * 120);
   let cigCx = 0, cigCy = 0;
 
-  let cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, total: 0 };
+  let cig = { burn: 0, maxBurn: 80, ash: 0, maxAsh: 50, lit: false, done: false, total: 0 };
   let match = { burning: false, burn: 0, maxBurn: 100, done: false, total: 0 };
   let candle = { lit: false, melt: 0, height: 150, total: 0 };
   let candleFlame = null;
@@ -22,6 +22,7 @@ const Interactions = (() => {
   let vapeLiquid = 100;
   let vape = { total: 0 };
   let bubble = { total: 0 };
+  let bubbleSoap = 100;
 
   let baseScale = 1;
 
@@ -132,6 +133,7 @@ const Interactions = (() => {
       this.size = (10 + Math.random() * 18) * s;
       this.life = 1;
       this.decay = 0.005 + Math.random() * 0.008;
+      this.color = null;
     }
     update() {
       this.x += this.vx; this.y += this.vy;
@@ -144,7 +146,7 @@ const Interactions = (() => {
       const alpha = Math.min(this.life * 0.4, 0.1);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,200,210,${alpha})`;
+      ctx.fillStyle = this.color ? this.color.replace('ALPHA', alpha) : `rgba(200,200,210,${alpha})`;
       ctx.fill();
     }
   }
@@ -257,13 +259,14 @@ const Interactions = (() => {
   }
 
   function resetState() {
-    cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
+    cig = { burn: 0, maxBurn: 80, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
     match = { burning: false, burn: 0, maxBurn: 100, done: false, total: match.total || 0 };
     candle = { lit: false, melt: 0, height: 150, total: candle.total || 0 };
     candleFlame = null;
     campfire = { lit: false, flames: [], sparksTimer: 0, total: campfire.total || 0 };
     vapePuffing = false;
     vapeLiquid = 100;
+    bubbleSoap = 100;
     particles = [];
     sessionActive = false;
     sessionTime = 0;
@@ -317,6 +320,9 @@ const Interactions = (() => {
 
   function endSession() {
     sessionActive = false;
+    const m = Math.floor(sessionTime / 60);
+    const sec = Math.floor(sessionTime % 60);
+    document.getElementById('timer-display').textContent = `✅ ${m}:${sec.toString().padStart(2, '0')}`;
     if (mode === 'cigarette' && cig.done) {
       cig.total++; socket.emit('cigarette-done');
     }
@@ -491,7 +497,12 @@ const Interactions = (() => {
       const r = cigLen * (1 - cig.burn / cig.maxBurn);
       const tip = rot(cx, cy, r, 0, angle);
       if (Math.random() < 0.08) {
-        particles.push(new Smoke(tip.x, tip.y, { vy: 1.5, vx: 0.6, size: 5, decay: 0.005, gravity: -0.03 }));
+        const c = new VapeCloud(tip.x, tip.y);
+        c.vy = (-Math.random() * 0.3 - 0.05) * baseScale;
+        c.decay = 0.003 + Math.random() * 0.004;
+        c.size = (8 + Math.random() * 10) * baseScale;
+        c.color = 'rgba(200,185,165,ALPHA)';
+        particles.push(c);
       }
     }
 
@@ -532,8 +543,8 @@ const Interactions = (() => {
     }
 
     if (cig.done) {
-      ctx.fillStyle = '#605040';
-      ctx.roundRect(0, -cigW / 2, 20 * s, cigW, 2 * s); ctx.fill();
+      ctx.fillStyle = '#6b4423';
+      ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
     }
 
     ctx.restore();
@@ -544,11 +555,12 @@ const Interactions = (() => {
     const s = baseScale;
     const cx = W / 2, cy = H * 0.5 + 10 * s;
     const wandX = cx, wandY = cy - 20 * s;
-    if (isPressed) {
+    if (isPressed && bubbleSoap > 0) {
       for (let i = 0; i < 3; i++) {
         const a = Math.random() * Math.PI * 2;
         particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
       }
+      bubbleSoap = Math.max(0, bubbleSoap - 0.008);
     }
     ctx.save(); ctx.translate(cx, cy);
     ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
@@ -557,14 +569,15 @@ const Interactions = (() => {
     ctx.beginPath(); ctx.arc(0, -20 * s, 14 * s, 0, Math.PI * 2); ctx.stroke();
     ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
     ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
-    // Soap bottle
+    // Soap bottle with liquid level
     ctx.save(); ctx.translate(-35 * s, 50 * s);
-    ctx.strokeStyle = 'rgba(200,220,255,0.25)'; ctx.lineWidth = 1.5 * s;
-    ctx.strokeRect(-12 * s, -22 * s, 24 * s, 30 * s, 3 * s);
-    ctx.strokeStyle = 'rgba(200,220,255,0.1)';
-    ctx.strokeRect(-9 * s, -8 * s, 18 * s, 14 * s, 2 * s);
-    ctx.fillStyle = 'rgba(200,220,255,0.06)';
-    ctx.fillRect(-9 * s, -8 * s, 18 * s, 14 * s);
+    const bottleH = 30 * s, bottleW = 24 * s;
+    ctx.strokeStyle = 'rgba(200,220,255,0.2)'; ctx.lineWidth = 1.5 * s;
+    ctx.strokeRect(-bottleW / 2, -bottleH, bottleW, bottleH, 3 * s);
+    const soapH = (bubbleSoap / 100) * (bottleH - 4 * s);
+    ctx.fillStyle = 'rgba(180,220,255,0.15)';
+    ctx.roundRect(-bottleW / 2 + 2 * s, -bottleH + 2 * s + (bottleH - 4 * s - soapH), bottleW - 4 * s, soapH, 2 * s);
+    ctx.fill();
     ctx.restore();
     ctx.restore();
   }
@@ -580,10 +593,12 @@ const Interactions = (() => {
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
     const liquidH = (vapeLiquid / 100) * 35 * s;
     const grdL = ctx.createLinearGradient(0, 55 * s - liquidH, 0, 55 * s);
-    grdL.addColorStop(0, 'rgba(0,200,255,0)');
-    grdL.addColorStop(1, 'rgba(0,200,255,0.2)');
+    grdL.addColorStop(0, 'rgba(0,200,255,0.4)');
+    grdL.addColorStop(1, 'rgba(0,200,255,0.1)');
     ctx.fillStyle = grdL;
     ctx.roundRect(-10 * s, 55 * s - liquidH, 20 * s, liquidH, 3 * s); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,200,255,0.3)'; ctx.lineWidth = 1;
+    ctx.roundRect(-10 * s, 20 * s, 20 * s, 35 * s, 3 * s); ctx.stroke();
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
@@ -600,7 +615,7 @@ const Interactions = (() => {
     ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
     if (vapePuffing) {
-      vapeLiquid = Math.max(0, vapeLiquid - 0.02);
+      vapeLiquid = Math.max(0, vapeLiquid - 0.003);
       if (Math.random() < 0.35) {
         particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 24 * s));
       }
