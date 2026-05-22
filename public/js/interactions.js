@@ -23,6 +23,7 @@ const Interactions = (() => {
   let vape = { total: 0 };
   let bubble = { total: 0 };
   let bubbleSoap = 100;
+  let bubbleFrame = 0;
 
   let baseScale = 1;
 
@@ -93,7 +94,7 @@ const Interactions = (() => {
       this.y = y;
       this.vx = (Math.random() - 0.5) * 0.5 * s;
       this.vy = (-Math.random() * 1.2 - 0.3) * s;
-      this.size = (10 + Math.random() * 22) * s;
+      this.size = (4 + Math.random() * 30) * s;
       this.life = 1;
       this.wobble = Math.random() * Math.PI * 2;
       this.wobbleSpeed = 0.015 + Math.random() * 0.025;
@@ -536,38 +537,106 @@ const Interactions = (() => {
     ctx.translate(cx, cy);
     ctx.rotate(angle);
 
+    const filterW = 22 * s;
+    const bodyR = cigW / 2;
+
+    // shadow under whole cigarette
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(2 * s, 2 * s, (remaining + 4 * s) / 2, bodyR + 2 * s, 0, 0, Math.PI * 2); ctx.fill();
+
     if (remaining > 0) {
-      const grdF = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
-      grdF.addColorStop(0, '#8b5e3c'); grdF.addColorStop(0.5, '#7a4e2e'); grdF.addColorStop(1, '#6b3f1f');
+      // ── paper body ──
+      const paperLen = Math.max(0, remaining - filterW);
+      if (paperLen > 0) {
+        const grdP = ctx.createLinearGradient(0, -bodyR, 0, bodyR);
+        grdP.addColorStop(0, '#e4ddd0'); grdP.addColorStop(0.3, '#f5f0e8'); grdP.addColorStop(0.7, '#f5f0e8'); grdP.addColorStop(1, '#d8d0c4');
+        ctx.fillStyle = grdP;
+        ctx.roundRect(filterW, -bodyR, paperLen, cigW, 1); ctx.fill();
+        // paper seam line
+        ctx.strokeStyle = 'rgba(180,170,160,0.15)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(filterW, -bodyR + 1); ctx.lineTo(filterW + paperLen, -bodyR + 1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(filterW, bodyR - 1); ctx.lineTo(filterW + paperLen, bodyR - 1); ctx.stroke();
+        // subtle paper grain
+        for (let g = 0; g < paperLen; g += 6 * s) {
+          ctx.strokeStyle = `rgba(200,190,180,${0.02 + Math.random() * 0.03})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath(); ctx.moveTo(filterW + g, -bodyR); ctx.lineTo(filterW + g + Math.random() * 3 * s, bodyR); ctx.stroke();
+        }
+      }
+
+      // ── cork filter ──
+      const grdF = ctx.createLinearGradient(0, -bodyR, 0, bodyR);
+      grdF.addColorStop(0, '#c89040'); grdF.addColorStop(0.2, '#d4a55a'); grdF.addColorStop(0.5, '#dcb06a');
+      grdF.addColorStop(0.8, '#d4a55a'); grdF.addColorStop(1, '#b88038');
       ctx.fillStyle = grdF;
-      ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
-      const grdP = ctx.createLinearGradient(0, -cigW / 2, 0, cigW / 2);
-      grdP.addColorStop(0, '#f2ece0'); grdP.addColorStop(0.5, '#faf6ee'); grdP.addColorStop(1, '#e8e0d0');
-      ctx.fillStyle = grdP;
-      ctx.roundRect(24 * s, -cigW / 2, remaining - 24 * s, cigW, 1); ctx.fill();
-      if (cig.ash > 3) {
-        const ashH = Math.min(cig.ash / cig.maxAsh * cigW * 0.5, cigW * 0.4);
-        ctx.fillStyle = 'rgba(100,85,70,0.6)';
-        ctx.roundRect(remaining - 3 * s, -cigW / 2 - ashH * 0.3, 6 * s + (cig.ash / cig.maxAsh) * 4 * s, cigW + ashH * 0.6, 2 * s);
-        ctx.fill();
+      ctx.roundRect(0, -bodyR, filterW, cigW, 3 * s); ctx.fill();
+      // cork texture dots
+      ctx.fillStyle = 'rgba(160,120,60,0.2)';
+      for (let t = 0; t < 12; t++) {
+        const tx = (t / 12) * filterW + Math.random() * 2 * s;
+        const ty = -bodyR + Math.random() * cigW;
+        const ts = (0.8 + Math.random() * 1.2) * s;
+        ctx.beginPath(); ctx.arc(tx, ty, ts, 0, Math.PI * 2); ctx.fill();
+      }
+      // cork decorative border line
+      ctx.strokeStyle = 'rgba(100,70,30,0.3)'; ctx.lineWidth = 1.5 * s;
+      ctx.beginPath(); ctx.moveTo(filterW, -bodyR + 3 * s); ctx.lineTo(filterW, bodyR - 3 * s); ctx.stroke();
+      ctx.strokeStyle = 'rgba(100,70,30,0.15)'; ctx.lineWidth = 1 * s;
+      ctx.beginPath(); ctx.moveTo(filterW - 1.5 * s, -bodyR + 4 * s); ctx.lineTo(filterW - 1.5 * s, bodyR - 4 * s); ctx.stroke();
+      // extra cork rings
+      ctx.strokeStyle = 'rgba(100,70,30,0.08)';
+      ctx.lineWidth = 0.5;
+      for (let r = 0; r < 4; r++) {
+        const rx = (r + 1) * 4 * s;
+        ctx.beginPath(); ctx.moveTo(rx, -bodyR + 1); ctx.lineTo(rx + 2 * s, bodyR - 1); ctx.stroke();
+      }
+
+      // ── ash ──
+      if (cig.ash > 3 || (cig.lit && !cig.done)) {
+        const ashLen = cig.lit ? Math.min(4 + cig.ash / cig.maxAsh * 10, 12) : 0;
+        const ashA = cig.lit ? 0.5 + (cig.ash / cig.maxAsh) * 0.3 : 0.3;
+        ctx.fillStyle = `rgba(120,110,100,${ashA})`;
+        ctx.roundRect(remaining - ashLen * s, -bodyR - 1 * s, ashLen * s + 2 * s, cigW + 2 * s, 2 * s); ctx.fill();
+        ctx.fillStyle = `rgba(140,130,120,${ashA * 0.5})`;
+        ctx.roundRect(remaining - ashLen * s * 0.6, -bodyR, ashLen * s * 0.6, cigW, 1); ctx.fill();
       }
     }
 
+    // ── ember glow ──
     if (cig.lit && !cig.done) {
       const tipX = remaining;
-      const grd = ctx.createRadialGradient(tipX, 0, 0, tipX, 0, 10 * s);
-      grd.addColorStop(0, 'rgba(255,200,80,0.7)');
-      grd.addColorStop(0.3, 'rgba(255,120,30,0.5)');
-      grd.addColorStop(1, 'rgba(255,50,0,0)');
+      // outer glow
+      const grd = ctx.createRadialGradient(tipX, 0, 0, tipX, 0, 14 * s);
+      grd.addColorStop(0, 'rgba(255,200,80,0.5)');
+      grd.addColorStop(0.2, 'rgba(255,120,30,0.35)');
+      grd.addColorStop(0.5, 'rgba(200,40,0,0.15)');
+      grd.addColorStop(1, 'rgba(200,40,0,0)');
       ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.ellipse(tipX, 0, 4 * s, 10 * s, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(tipX, 0, 2 * s, 5 * s, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,200,100,0.9)'; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(tipX, 0, 5 * s, 11 * s, 0, 0, Math.PI * 2); ctx.fill();
+      // bright core
+      ctx.beginPath(); ctx.ellipse(tipX, 0, 2.5 * s, 5 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,220,120,0.95)'; ctx.fill();
+      // tiny hot spots
+      ctx.beginPath(); ctx.arc(tipX + 0.5 * s, -1.5 * s, 1.2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,200,0.7)'; ctx.fill();
     }
 
+    // done: just filter nub
     if (cig.done) {
-      ctx.fillStyle = '#6b4423';
-      ctx.roundRect(0, -cigW / 2, 24 * s, cigW, 3 * s); ctx.fill();
+      const grdF = ctx.createLinearGradient(0, -bodyR, 0, bodyR);
+      grdF.addColorStop(0, '#b07838'); grdF.addColorStop(0.5, '#c89048'); grdF.addColorStop(1, '#a06830');
+      ctx.fillStyle = grdF;
+      ctx.roundRect(0, -bodyR, filterW, cigW, 3 * s); ctx.fill();
+      ctx.fillStyle = 'rgba(160,120,60,0.15)';
+      for (let t = 0; t < 6; t++) {
+        const tx = (t / 6) * filterW + Math.random() * 2 * s;
+        const ty = -bodyR + Math.random() * cigW;
+        ctx.beginPath(); ctx.arc(tx, ty, (0.5 + Math.random()) * s, 0, Math.PI * 2); ctx.fill();
+      }
+      // burnt tip mark
+      ctx.fillStyle = 'rgba(60,50,40,0.4)';
+      ctx.roundRect(filterW - 2 * s, -bodyR, 3 * s, cigW, 1); ctx.fill();
     }
 
     ctx.restore();
@@ -579,11 +648,15 @@ const Interactions = (() => {
     const cx = W / 2, cy = H * 0.5 + 10 * s;
     const wandX = cx, wandY = cy - 20 * s;
     if (isPressed && bubbleSoap > 0) {
-      for (let i = 0; i < 3; i++) {
-        const a = Math.random() * Math.PI * 2;
-        particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
+      bubbleFrame++;
+      if (bubbleFrame % 12 === 0) {
+        const n = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < n; i++) {
+          const a = Math.random() * Math.PI * 2;
+          particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
+        }
       }
-       bubbleSoap = Math.max(0, bubbleSoap - 0.004);
+      bubbleSoap = Math.max(0, bubbleSoap - 0.004);
     }
     ctx.save(); ctx.translate(cx, cy);
     ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
