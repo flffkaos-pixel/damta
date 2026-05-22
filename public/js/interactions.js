@@ -11,6 +11,7 @@ const Interactions = (() => {
   let sessionActive = false;
   let sessionTime = 0;
   let sessionDuration = 300 + Math.floor(Math.random() * 120);
+  let cigCx = 0, cigCy = 0;
 
   let cig = { burn: 0, maxBurn: 100, ash: 0, maxAsh: 50, lit: false, done: false, total: 0 };
   let match = { burning: false, burn: 0, maxBurn: 100, done: false, total: 0 };
@@ -363,7 +364,7 @@ const Interactions = (() => {
       if (mode === 'cigarette' && cig.lit && !cig.done && (Date.now() - pressStart) < 300) {
         const angle = -Math.PI / 6;
         const visRemaining = 120 * baseScale * (1 - cig.burn / cig.maxBurn);
-        const tip = rot(W / 2, H * 0.5, visRemaining, 0, angle);
+        const tip = rot(cigCx, cigCy, visRemaining, 0, angle);
         for (let i = 0; i < 8; i++) particles.push(new Ash(tip.x, tip.y));
         cig.ash = 0;
       }
@@ -474,12 +475,13 @@ const Interactions = (() => {
   function updateCigarette() {
     const s = baseScale;
     const cx = W / 2 - 50 * s, cy = H * 0.5 + 30 * s;
+    cigCx = cx; cigCy = cy;
     const cigLen = 120 * s, cigW = 16 * s;
     const angle = -Math.PI / 6;
 
     if (cig.lit && !cig.done) {
-      cig.burn += 0.004 + (isPressed ? 0.001 : 0);
-      cig.ash += 0.003 + (isPressed ? 0.001 : 0);
+      cig.burn += 0.004 + (isPressed ? 0.006 : 0);
+      cig.ash += 0.003 + (isPressed ? 0.005 : 0);
       if (cig.burn >= cig.maxBurn) { cig.done = true; cig.lit = false; endSession(); }
       if (cig.ash >= cig.maxAsh) {
         const r = cigLen * (1 - cig.burn / cig.maxBurn);
