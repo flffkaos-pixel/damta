@@ -274,6 +274,8 @@ const Interactions = (() => {
     particles = [];
     sessionActive = false;
     sessionTime = 0;
+    const td = document.getElementById('timer-display');
+    if (td) td.textContent = '⏱️';
     const btn = document.getElementById('restart-btn');
     if (btn) btn.style.display = 'none';
     updateTotals();
@@ -346,7 +348,6 @@ const Interactions = (() => {
 
   document.getElementById('restart-btn').addEventListener('click', () => {
     resetState();
-    if (mode === 'cigarette') cig.total++;
     updateTotals();
   });
 

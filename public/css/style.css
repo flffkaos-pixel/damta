@@ -79,7 +79,7 @@ body {
   color: #f0a050; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 11px;
 }
 
-.restart-btn {
+#restart-btn {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: #f0a050; border: none;
   color: #0a0a0f; width: 64px; height: 64px; border-radius: 50%;
@@ -87,7 +87,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 40px rgba(240,160,80,0.6);
 }
-.restart-btn:hover { background: #ffb860; transform: translate(-50%, -50%) scale(1.15); }
+#restart-btn:hover { background: #ffb860; transform: translate(-50%, -50%) scale(1.15); }
 
 @media (max-width: 768px) {
   #header { padding: 3px 6px; min-height: 32px; }
