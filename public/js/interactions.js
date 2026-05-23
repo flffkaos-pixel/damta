@@ -719,7 +719,7 @@ const Interactions = (() => {
           particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
         }
       }
-      bubbleSoap = Math.max(0, bubbleSoap - 0.015);
+      bubbleSoap = Math.max(0, bubbleSoap - 0.03);
       if (bubbleSoap <= 0) { sessionActive = false; endSession(); }
     }
     ctx.save(); ctx.translate(cx, cy);
@@ -730,8 +730,8 @@ const Interactions = (() => {
     ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
     ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
     // Soap bottle with liquid level
-    ctx.save(); ctx.translate(-20 * s, 48 * s);
-    const bottleH = 44 * s, bottleW = 34 * s;
+    ctx.save(); ctx.translate(-20 * s, 42 * s);
+    const bottleH = 32 * s, bottleW = 24 * s;
     ctx.fillStyle = 'rgba(200,220,255,0.06)';
     ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 5 * s); ctx.fill();
     ctx.strokeStyle = 'rgba(180,210,250,0.4)'; ctx.lineWidth = 2.5 * s;
@@ -761,6 +761,15 @@ const Interactions = (() => {
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
+    // right side vertical gauge bar
+    const rX = 10 * s, rW = 3 * s, rY = 10 * s, rH = 40 * s;
+    ctx.fillStyle = 'rgba(10,15,30,0.5)';
+    ctx.roundRect(rX, rY, rW, rH, 1.5 * s); ctx.fill();
+    const rFill = (vapeLiquid / 100) * (rH - 4 * s);
+    ctx.fillStyle = '#00ddbb';
+    ctx.globalAlpha = 0.7;
+    ctx.roundRect(rX + 0.5 * s, rY + rH - 2 * s - rFill, rW - 1 * s, rFill, 1 * s); ctx.fill();
+    ctx.globalAlpha = 1;
     // top horizontal liquid gauge
     const gW = 22 * s, gH = 6 * s, gX = -11 * s, gY = -2 * s;
     ctx.fillStyle = 'rgba(10,15,30,0.6)';
