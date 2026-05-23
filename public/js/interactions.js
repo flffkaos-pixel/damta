@@ -756,10 +756,12 @@ const Interactions = (() => {
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.roundRect(iGX, iGY, iGW, iGH, 3 * s); ctx.fill();
     const iGFill = (vapeLiquid / 100) * (iGW - 6 * s);
-    ctx.fillStyle = '#ffffff';
-    ctx.globalAlpha = 0.8;
+    const gG = ctx.createLinearGradient(iGX, iGY, iGX + iGW, iGY);
+    gG.addColorStop(0, '#ff8800');
+    gG.addColorStop(0.5, '#ffcc00');
+    gG.addColorStop(1, '#44ff44');
+    ctx.fillStyle = gG;
     ctx.roundRect(iGX + 3 * s, iGY + 2 * s, iGFill, iGH - 4 * s, 2 * s); ctx.fill();
-    ctx.globalAlpha = 1;
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
