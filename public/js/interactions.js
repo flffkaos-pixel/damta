@@ -13,7 +13,7 @@ const Interactions = (() => {
   let sessionDuration = 300 + Math.floor(Math.random() * 120);
   let cigCx = 0, cigCy = 0;
 
-  let cig = { burn: 0, maxBurn: 80, ash: 0, maxAsh: 50, lit: false, done: false, total: 0 };
+  let cig = { burn: 0, maxBurn: 24, ash: 0, maxAsh: 50, lit: false, done: false, total: 0 };
   let match = { burning: false, burn: 0, maxBurn: 100, done: false, total: 0 };
   let candle = { lit: false, melt: 0, height: 150, total: 0 };
   let candleFlame = null;
@@ -23,7 +23,7 @@ const Interactions = (() => {
   let vapeLiquid = 100;
   let vape = { total: 0 };
   let bubble = { total: 0 };
-  let bubbleSoap = 100;
+  let bubbleSoap = 30;
   let bubbleFrame = 0;
 
   let trashAnim = null;

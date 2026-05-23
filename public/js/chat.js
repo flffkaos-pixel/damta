@@ -18,9 +18,7 @@ const Chat = (() => {
 
     socket.on('stats', (data) => {
       const on = document.getElementById('stat-online');
-      const cig = document.getElementById('stat-cigarettes');
       if (on) on.textContent = data.online;
-      if (cig) cig.textContent = data.cigarettes;
     });
 
     const input = document.getElementById('chat-input');
