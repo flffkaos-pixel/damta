@@ -400,6 +400,7 @@ const Interactions = (() => {
         vapeLiquid = Math.max(0, vapeLiquid - 0.5);
       } else if (mode === 'bubble') {
         if (!sessionActive) startSession();
+        bubbleSoap = Math.max(0, bubbleSoap - 0.5);
       }
     }
     function onMove(e) { e.preventDefault(); }
@@ -732,22 +733,22 @@ const Interactions = (() => {
     // Soap bottle with liquid level
     ctx.save(); ctx.translate(-20 * s, 42 * s);
     const bottleH = 32 * s, bottleW = 24 * s;
-    ctx.fillStyle = 'rgba(200,220,255,0.06)';
+    ctx.fillStyle = 'rgba(30,40,60,0.4)';
     ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 5 * s); ctx.fill();
-    ctx.strokeStyle = 'rgba(180,210,250,0.4)'; ctx.lineWidth = 2.5 * s;
+    ctx.strokeStyle = 'rgba(100,180,255,0.6)'; ctx.lineWidth = 2 * s;
     ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 5 * s); ctx.stroke();
     // liquid
     const soapH = (bubbleSoap / 30) * (bottleH - 8 * s);
     const liqY = -bottleH + 4 * s + (bottleH - 8 * s - soapH);
-    const liqG = ctx.createLinearGradient(0, liqY, 0, liqY + soapH);
-    liqG.addColorStop(0, 'rgba(100,200,255,0.55)');
-    liqG.addColorStop(1, 'rgba(60,160,230,0.35)');
-    ctx.fillStyle = liqG;
+    ctx.fillStyle = '#3399ff';
+    ctx.globalAlpha = 0.7;
     ctx.roundRect(-bottleW / 2 + 4 * s, liqY, bottleW - 8 * s, soapH, 3 * s);
     ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.roundRect(-bottleW / 2 + 8 * s, liqY + 3 * s, bottleW - 16 * s, 3 * s, 1 * s);
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#66ccff';
+    ctx.roundRect(-bottleW / 2 + 6 * s, liqY + 3 * s, bottleW - 12 * s, 4 * s, 1 * s);
     ctx.fill();
+    ctx.globalAlpha = 1;
     ctx.restore();
     ctx.restore();
   }
@@ -762,14 +763,15 @@ const Interactions = (() => {
     ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
     // right side vertical gauge bar
-    const rX = 10 * s, rW = 3 * s, rY = 10 * s, rH = 40 * s;
-    ctx.fillStyle = 'rgba(10,15,30,0.5)';
-    ctx.roundRect(rX, rY, rW, rH, 1.5 * s); ctx.fill();
+    const rX = 10 * s, rW = 4 * s, rY = 10 * s, rH = 40 * s;
+    ctx.fillStyle = '#0a0e1a';
+    ctx.roundRect(rX, rY, rW, rH, 2 * s); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,180,0,0.2)';
+    ctx.lineWidth = 0.5;
+    ctx.roundRect(rX, rY, rW, rH, 2 * s); ctx.stroke();
     const rFill = (vapeLiquid / 100) * (rH - 4 * s);
-    ctx.fillStyle = '#00ddbb';
-    ctx.globalAlpha = 0.7;
-    ctx.roundRect(rX + 0.5 * s, rY + rH - 2 * s - rFill, rW - 1 * s, rFill, 1 * s); ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#ff8800';
+    ctx.roundRect(rX + 1 * s, rY + rH - 2 * s - rFill, rW - 2 * s, rFill, 1 * s); ctx.fill();
     // top horizontal liquid gauge
     const gW = 22 * s, gH = 6 * s, gX = -11 * s, gY = -2 * s;
     ctx.fillStyle = 'rgba(10,15,30,0.6)';
