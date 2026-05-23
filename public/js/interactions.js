@@ -26,6 +26,8 @@ const Interactions = (() => {
   let bubbleSoap = 100;
   let bubbleFrame = 0;
 
+  let trashAnim = null;
+
   let baseScale = 1;
 
   function calcScale() {
@@ -272,12 +274,13 @@ const Interactions = (() => {
     vapeLiquid = 100;
     bubbleSoap = 100;
     particles = [];
+    trashAnim = null;
     sessionActive = false;
     sessionTime = 0;
     const td = document.getElementById('timer-display');
     if (td) td.textContent = '⏱️';
-    const btn = document.getElementById('restart-btn');
-    if (btn) btn.style.display = 'none';
+    const opts = document.getElementById('end-options');
+    if (opts) opts.style.display = 'none';
     updateTotals();
   }
 
@@ -289,8 +292,8 @@ const Interactions = (() => {
     setupEvents();
     animate();
     updateTotals();
-    const rb = document.getElementById('restart-btn');
-    if (rb) rb.style.display = 'none';
+    const opts = document.getElementById('end-options');
+    if (opts) opts.style.display = 'none';
   }
 
   function resize() {
@@ -341,14 +344,31 @@ const Interactions = (() => {
     if (mode === 'match' && match.done) match.total++;
     if (mode === 'candle' && !candle.lit) candle.total++;
     if (mode === 'pipe' && pipe.done) pipe.total++;
-    const btn = document.getElementById('restart-btn');
-    if (btn) btn.style.display = 'flex';
+    const opts = document.getElementById('end-options');
+    if (opts) opts.style.display = 'flex';
     updateTotals();
   }
 
-  document.getElementById('restart-btn').addEventListener('click', () => {
+  function startTrashAnim() {
+    const opts = document.getElementById('end-options');
+    if (opts) opts.style.display = 'none';
+    const s = baseScale;
+    const cx = W / 2 - 50 * s, cy = H * 0.5 + 30 * s;
+    const angle = -Math.PI / 6;
+    const filterW = 22 * s;
+    const buttCx = cx + (filterW / 2) * Math.cos(angle);
+    const buttCy = cy + (filterW / 2) * Math.sin(angle);
+    const canX = W - 60 * s, canY = H - 50 * s;
+    trashAnim = { phase: 0, buttX: buttCx, buttY: buttCy, canX, canY };
+  }
+
+  document.getElementById('more-btn').addEventListener('click', () => {
     resetState();
     updateTotals();
+  });
+
+  document.getElementById('done-btn').addEventListener('click', () => {
+    startTrashAnim();
   });
 
   function setupEvents() {
@@ -472,6 +492,60 @@ const Interactions = (() => {
       chatMessages[i].draw(ctx);
       if (chatMessages[i].life <= 0) chatMessages.splice(i, 1);
     }
+
+    if (trashAnim) {
+      const s = baseScale;
+      trashAnim.phase += 0.012;
+      if (trashAnim.phase >= 1) {
+        trashAnim = null;
+        resetState();
+      } else {
+        const t = trashAnim.phase;
+        const bX = trashAnim.buttX, bY = trashAnim.buttY;
+        const cX = trashAnim.canX, cY = trashAnim.canY;
+        const mx = (bX + cX) / 2, my = Math.min(bY, cY) - 60 * s * (1 - t);
+        const px = (1 - t) * (1 - t) * bX + 2 * (1 - t) * t * mx + t * t * cX;
+        const py = (1 - t) * (1 - t) * bY + 2 * (1 - t) * t * my + t * t * cY;
+        const rot = t * Math.PI * 3;
+
+        // trash can
+        ctx.save();
+        ctx.translate(cX, cY);
+        ctx.fillStyle = '#3a3530';
+        ctx.roundRect(-16 * s, -22 * s, 32 * s, 34 * s, [2 * s, 2 * s, 6 * s, 6 * s]); ctx.fill();
+        ctx.fillStyle = '#4a4540';
+        ctx.roundRect(-16 * s, -22 * s, 32 * s, 6 * s, 2 * s); ctx.fill();
+        ctx.strokeStyle = '#5a5550';
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath(); ctx.moveTo(-10 * s, -16 * s); ctx.lineTo(-10 * s, 8 * s); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -16 * s); ctx.lineTo(0, 8 * s); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10 * s, -16 * s); ctx.lineTo(10 * s, 8 * s); ctx.stroke();
+        // lid
+        ctx.fillStyle = '#4a4540';
+        ctx.roundRect(-18 * s, -28 * s, 36 * s, 4 * s, 2 * s); ctx.fill();
+        ctx.restore();
+
+        // flying butt
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(rot);
+        const fw = 22 * s, fh = 16 * s;
+        const grd = ctx.createLinearGradient(0, -fh / 2, 0, fh / 2);
+        grd.addColorStop(0, '#bf8740'); grd.addColorStop(0.3, '#daa858');
+        grd.addColorStop(0.7, '#c89048'); grd.addColorStop(1, '#a87030');
+        ctx.fillStyle = grd;
+        ctx.roundRect(-fw / 2, -fh / 2, fw, fh, 2 * s); ctx.fill();
+        ctx.fillStyle = 'rgba(50,40,30,0.35)';
+        ctx.roundRect(fw / 2 - 3 * s, -fh / 2, 3 * s, fh, 1 * s); ctx.fill();
+        ctx.restore();
+
+        // trail
+        if (t > 0.1) {
+          particles.push({ x: px, y: py, life: 0.3, decay: 0.02, size: 3 * s, draw(p) { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(200,190,170,${this.life * 0.3})`; ctx.fill(); }, update() { this.life -= this.decay; this.x += (Math.random() - 0.5) * 0.5; this.y += (Math.random() - 0.5) * 0.5; } });
+        }
+      }
+    }
+
     animId = requestAnimationFrame(animate);
   }
 
