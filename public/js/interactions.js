@@ -401,6 +401,7 @@ const Interactions = (() => {
         vapeLiquid = Math.max(0, vapeLiquid - 0.5);
       } else if (mode === 'bubble') {
         if (!sessionActive) startSession();
+        bubbleSoap = Math.max(0, bubbleSoap - 0.5);
       }
     }
     function onMove(e) { e.preventDefault(); }
@@ -713,18 +714,11 @@ const Interactions = (() => {
     const wandX = cx, wandY = cy - 20 * s;
     if (isPressed && bubbleSoap > 0) {
       bubbleFrame++;
-      if (bubbleFrame % 12 === 0) {
-        const n = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < n; i++) {
-          const a = Math.random() * Math.PI * 2;
-          particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
-        }
+      if (bubbleFrame % 60 === 0) {
+        particles.push(new Bubble(wandX + (Math.random() - 0.5) * 8 * s, wandY + (Math.random() - 0.5) * 8 * s));
       }
     }
-    if (sessionActive && bubbleSoap > 0) {
-      bubbleSoap = Math.max(0, bubbleSoap - 0.017);
-      if (bubbleSoap <= 0) { sessionActive = false; endSession(); }
-    }
+    if (bubbleSoap <= 0 && sessionActive) { sessionActive = false; endSession(); }
     ctx.save(); ctx.translate(cx, cy);
     ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
     ctx.beginPath(); ctx.moveTo(0, 20 * s); ctx.lineTo(0, -15 * s); ctx.stroke();
@@ -756,29 +750,6 @@ const Interactions = (() => {
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
-    // right side vertical gauge bar
-    const rX = 10 * s, rW = 4 * s, rY = 10 * s, rH = 40 * s;
-    ctx.fillStyle = '#0a0e1a';
-    ctx.roundRect(rX, rY, rW, rH, 2 * s); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,180,0,0.2)';
-    ctx.lineWidth = 0.5;
-    ctx.roundRect(rX, rY, rW, rH, 2 * s); ctx.stroke();
-    const rFill = (vapeLiquid / 100) * (rH - 4 * s);
-    ctx.fillStyle = '#ff8800';
-    ctx.roundRect(rX + 1 * s, rY + rH - 2 * s - rFill, rW - 2 * s, rFill, 1 * s); ctx.fill();
-    // top horizontal liquid gauge
-    const gW = 22 * s, gH = 6 * s, gX = -11 * s, gY = -2 * s;
-    ctx.fillStyle = 'rgba(10,15,30,0.6)';
-    ctx.roundRect(gX, gY, gW, gH, 3 * s); ctx.fill();
-    const gFill = (vapeLiquid / 100) * (gW - 6 * s);
-    const gG = ctx.createLinearGradient(gX, gY, gX + gW, gY);
-    gG.addColorStop(0, '#ff8800');
-    gG.addColorStop(0.5, '#ffcc00');
-    gG.addColorStop(1, '#44ff44');
-    ctx.fillStyle = gG;
-    ctx.globalAlpha = 0.9;
-    ctx.roundRect(gX + 3 * s, gY + 1 * s, gFill, gH - 2 * s, 2 * s); ctx.fill();
-    ctx.globalAlpha = 1;
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
@@ -794,6 +765,17 @@ const Interactions = (() => {
     ctx.fillStyle = '#4a4a58';
     ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
+    // external gauge bar below device
+    const gW = 60 * s, gH = 10 * s, gX = cx - gW / 2, gY = cy + 42 * s;
+    ctx.fillStyle = 'rgba(20,30,50,0.5)';
+    ctx.roundRect(gX, gY, gW, gH, 5 * s); ctx.fill();
+    const gFill = (vapeLiquid / 100) * (gW - 6 * s);
+    const gG = ctx.createLinearGradient(gX, gY, gX + gW, gY);
+    gG.addColorStop(0, '#ff4444');
+    gG.addColorStop(0.5, '#ffaa00');
+    gG.addColorStop(1, '#44ff44');
+    ctx.fillStyle = gG;
+    ctx.roundRect(gX + 3 * s, gY + 2 * s, gFill, gH - 4 * s, 3 * s); ctx.fill();
     if (vapePuffing) {
       vapeLiquid = Math.max(0, vapeLiquid - 0.015);
       if (vapeLiquid <= 0) { vapePuffing = false; sessionActive = false; endSession(); }
@@ -807,7 +789,7 @@ const Interactions = (() => {
   function updateMatch() {
     const s = baseScale;
     const cx = W / 2 - 28 * s, cy = H * 0.5 - 28 * s;
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate(-Math.PI / 4);
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4);
     const stickLen = 80 * s;
     const headX = stickLen;
 
