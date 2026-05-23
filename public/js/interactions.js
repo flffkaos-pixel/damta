@@ -717,6 +717,7 @@ const Interactions = (() => {
       if (bubbleFrame % 60 === 0) {
         particles.push(new Bubble(wandX + (Math.random() - 0.5) * 8 * s, wandY + (Math.random() - 0.5) * 8 * s));
       }
+      bubbleSoap = Math.max(0, bubbleSoap - 0.03);
     }
     if (bubbleSoap <= 0 && sessionActive) { sessionActive = false; endSession(); }
     ctx.save(); ctx.translate(cx, cy);
@@ -750,6 +751,15 @@ const Interactions = (() => {
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
+    // wide gauge bar inside upper body
+    const iGW = 22 * s, iGH = 12 * s, iGX = -11 * s, iGY = 24 * s;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.roundRect(iGX, iGY, iGW, iGH, 3 * s); ctx.fill();
+    const iGFill = (vapeLiquid / 100) * (iGW - 6 * s);
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.8;
+    ctx.roundRect(iGX + 3 * s, iGY + 2 * s, iGFill, iGH - 4 * s, 2 * s); ctx.fill();
+    ctx.globalAlpha = 1;
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
@@ -765,17 +775,6 @@ const Interactions = (() => {
     ctx.fillStyle = '#4a4a58';
     ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
-    // external gauge bar below device
-    const gW = 60 * s, gH = 10 * s, gX = cx - gW / 2, gY = cy + 42 * s;
-    ctx.fillStyle = 'rgba(20,30,50,0.5)';
-    ctx.roundRect(gX, gY, gW, gH, 5 * s); ctx.fill();
-    const gFill = (vapeLiquid / 100) * (gW - 6 * s);
-    const gG = ctx.createLinearGradient(gX, gY, gX + gW, gY);
-    gG.addColorStop(0, '#ff4444');
-    gG.addColorStop(0.5, '#ffaa00');
-    gG.addColorStop(1, '#44ff44');
-    ctx.fillStyle = gG;
-    ctx.roundRect(gX + 3 * s, gY + 2 * s, gFill, gH - 4 * s, 3 * s); ctx.fill();
     if (vapePuffing) {
       vapeLiquid = Math.max(0, vapeLiquid - 0.015);
       if (vapeLiquid <= 0) { vapePuffing = false; sessionActive = false; endSession(); }
