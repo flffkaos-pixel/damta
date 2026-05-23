@@ -755,6 +755,18 @@ const Interactions = (() => {
     ctx.textAlign = 'center';
     ctx.fillText('🫧', 0, -bottleH - 4 * s);
     ctx.restore();
+    // soap gauge bar
+    ctx.save(); ctx.translate(-4 * s, 52 * s);
+    const gW = 4 * s, gH = bottleH - 4 * s;
+    ctx.fillStyle = 'rgba(40,50,80,0.3)';
+    ctx.roundRect(0, -gH, gW, gH, 2 * s); ctx.fill();
+    const gFill = (bubbleSoap / 30) * (gH - 4 * s);
+    const gG = ctx.createLinearGradient(0, -gH + 2 * s + (gH - 4 * s - gFill), 0, -gH + 2 * s + (gH - 4 * s - gFill) + gFill);
+    gG.addColorStop(0, 'rgba(0,230,255,0.7)');
+    gG.addColorStop(1, 'rgba(0,180,220,0.5)');
+    ctx.fillStyle = gG;
+    ctx.roundRect(1 * s, -gH + 2 * s + (gH - 4 * s - gFill), gW - 2 * s, gFill, 1 * s); ctx.fill();
+    ctx.restore();
     ctx.restore();
   }
 
@@ -778,17 +790,20 @@ const Interactions = (() => {
       const yOff = gaugeY + (tiers - 1 - i) * tierH;
       const filled = vapeLiquid > (i / tiers) * 100;
       if (filled) {
-        const bright = 120 + i * 40;
-        ctx.fillStyle = `rgba(${bright},${180 + i * 20},255,0.45)`;
+        const colors = ['#00e6c8', '#00ffaa', '#50ffb4'];
+        ctx.fillStyle = colors[i];
+        ctx.globalAlpha = 0.75;
       } else {
-        ctx.fillStyle = 'rgba(40,50,80,0.2)';
+        ctx.fillStyle = '#0a0e1a';
+        ctx.globalAlpha = 0.5;
       }
       ctx.roundRect(gaugeX, yOff, tierW, tierH - 2 * s, edgeR); ctx.fill();
+      ctx.globalAlpha = 1;
       if (filled) {
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
         ctx.roundRect(gaugeX + 2 * s, yOff + 2 * s, tierW - 4 * s, (tierH - 2 * s) / 3, edgeR); ctx.fill();
       }
-      ctx.strokeStyle = 'rgba(200,230,255,0.08)';
+      ctx.strokeStyle = filled ? 'rgba(0,255,200,0.15)' : 'rgba(40,50,80,0.25)';
       ctx.lineWidth = 0.5;
       ctx.roundRect(gaugeX, yOff, tierW, tierH - 2 * s, edgeR); ctx.stroke();
     }
