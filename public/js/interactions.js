@@ -353,13 +353,28 @@ const Interactions = (() => {
     const opts = document.getElementById('end-options');
     if (opts) opts.style.display = 'none';
     const s = baseScale;
-    const cx = W / 2 - 50 * s, cy = H * 0.5 + 30 * s;
-    const angle = -Math.PI / 6;
-    const filterW = 22 * s;
-    const buttCx = cx + (filterW / 2) * Math.cos(angle);
-    const buttCy = cy + (filterW / 2) * Math.sin(angle);
     const canX = W - 60 * s, canY = H - 50 * s;
-    trashAnim = { phase: 0, buttX: buttCx, buttY: buttCy, canX, canY };
+    let sx, sy;
+    switch (mode) {
+      case 'cigarette': {
+        const cx = W / 2 - 50 * s, cy = H * 0.5 + 30 * s;
+        const a = -Math.PI / 6;
+        sx = cx + 11 * s * Math.cos(a);
+        sy = cy + 11 * s * Math.sin(a);
+        break;
+      }
+      case 'bubble': sx = W / 2; sy = H * 0.5 + 10 * s; break;
+      case 'vape': sx = W / 2; sy = H * 0.5 - 30 * s; break;
+      case 'match': {
+        const cx = W / 2 - 28 * s, cy = H * 0.5 - 28 * s;
+        const m = rot(cx, cy, 70 * s, 0, Math.PI / 4);
+        sx = m.x; sy = m.y; break;
+      }
+      case 'candle': sx = W / 2; sy = H * 0.5 + 75 * s; break;
+      case 'pipe': sx = W / 2 - 20 * s; sy = H * 0.5 + 20 * s; break;
+      default: sx = W / 2; sy = H * 0.5;
+    }
+    trashAnim = { phase: 0, buttX: sx, buttY: sy, canX, canY, mode };
   }
 
   function setupEvents() {
@@ -520,18 +535,42 @@ const Interactions = (() => {
         ctx.roundRect(-18 * s, -28 * s, 36 * s, 4 * s, 2 * s); ctx.fill();
         ctx.restore();
 
-        // flying butt
+        // flying item (mode-specific)
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(rot);
-        const fw = 22 * s, fh = 16 * s;
-        const grd = ctx.createLinearGradient(0, -fh / 2, 0, fh / 2);
-        grd.addColorStop(0, '#bf8740'); grd.addColorStop(0.3, '#daa858');
-        grd.addColorStop(0.7, '#c89048'); grd.addColorStop(1, '#a87030');
-        ctx.fillStyle = grd;
-        ctx.roundRect(-fw / 2, -fh / 2, fw, fh, 2 * s); ctx.fill();
-        ctx.fillStyle = 'rgba(50,40,30,0.35)';
-        ctx.roundRect(fw / 2 - 3 * s, -fh / 2, 3 * s, fh, 1 * s); ctx.fill();
+        const tm = trashAnim.mode || 'cigarette';
+        if (tm === 'cigarette') {
+          const fw = 22 * s, fh = 16 * s;
+          const grd = ctx.createLinearGradient(0, -fh / 2, 0, fh / 2);
+          grd.addColorStop(0, '#bf8740'); grd.addColorStop(0.3, '#daa858');
+          grd.addColorStop(0.7, '#c89048'); grd.addColorStop(1, '#a87030');
+          ctx.fillStyle = grd;
+          ctx.roundRect(-fw / 2, -fh / 2, fw, fh, 2 * s); ctx.fill();
+          ctx.fillStyle = 'rgba(50,40,30,0.35)';
+          ctx.roundRect(fw / 2 - 3 * s, -fh / 2, 3 * s, fh, 1 * s); ctx.fill();
+        } else if (tm === 'bubble') {
+          ctx.strokeStyle = 'rgba(180,220,255,0.6)'; ctx.lineWidth = 2.5 * s;
+          ctx.beginPath(); ctx.arc(0, 0, 12 * s, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = 'rgba(180,220,255,0.15)'; ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.2)';
+          ctx.beginPath(); ctx.arc(-3 * s, -4 * s, 4 * s, 0, Math.PI * 2); ctx.fill();
+        } else if (tm === 'vape') {
+          ctx.fillStyle = '#182038'; ctx.roundRect(-10 * s, -20 * s, 20 * s, 40 * s, 4 * s); ctx.fill();
+          ctx.fillStyle = '#4a4a58'; ctx.roundRect(-6 * s, -24 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
+          ctx.fillStyle = '#880022'; ctx.beginPath(); ctx.arc(0, 4 * s, 3 * s, 0, Math.PI * 2); ctx.fill();
+        } else if (tm === 'match') {
+          ctx.fillStyle = '#3a2510'; ctx.roundRect(-30 * s, -2.5 * s, 60 * s, 5 * s, 1); ctx.fill();
+          ctx.fillStyle = '#cc5533'; ctx.beginPath(); ctx.arc(30 * s, 0, 6 * s, 0, Math.PI * 2); ctx.fill();
+        } else if (tm === 'candle') {
+          ctx.fillStyle = '#d8ccb8'; ctx.roundRect(-12 * s, -20 * s, 24 * s, 30 * s, 4 * s); ctx.fill();
+          ctx.fillStyle = '#302018'; ctx.lineWidth = 2 * s;
+          ctx.beginPath(); ctx.moveTo(0, -20 * s); ctx.lineTo(0, -30 * s); ctx.stroke();
+        } else if (tm === 'pipe') {
+          ctx.fillStyle = '#3a1f10'; ctx.roundRect(-14 * s, -16 * s, 28 * s, 30 * s, 4 * s); ctx.fill();
+          ctx.strokeStyle = '#3d2212'; ctx.lineWidth = 4 * s;
+          ctx.beginPath(); ctx.moveTo(14 * s, -6 * s); ctx.quadraticCurveTo(30 * s, 6 * s, 44 * s, -2 * s); ctx.stroke();
+        }
         ctx.restore();
 
         // trail
