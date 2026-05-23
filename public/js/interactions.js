@@ -593,10 +593,10 @@ const Interactions = (() => {
 
     const filterW = 22 * s;
     const bodyR = cigW / 2;
+    const bodyTop = -bodyR, bodyBot = bodyR;
 
     if (remaining > 0) {
       const paperLen = Math.max(0, remaining - filterW);
-      const bodyTop = -bodyR, bodyBot = bodyR;
 
       // ── paper body with 3D shading ──
       if (paperLen > 0) {
