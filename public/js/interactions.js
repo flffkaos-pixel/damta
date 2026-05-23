@@ -719,7 +719,7 @@ const Interactions = (() => {
           particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
         }
       }
-      bubbleSoap = Math.max(0, bubbleSoap - 0.06);
+      bubbleSoap = Math.max(0, bubbleSoap - 0.015);
       if (bubbleSoap <= 0) { sessionActive = false; endSession(); }
     }
     ctx.save(); ctx.translate(cx, cy);
@@ -730,41 +730,24 @@ const Interactions = (() => {
     ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
     ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
     // Soap bottle with liquid level
-    ctx.save(); ctx.translate(-35 * s, 44 * s);
-    const bottleH = 50 * s, bottleW = 38 * s;
-    ctx.fillStyle = 'rgba(200,220,255,0.05)';
+    ctx.save(); ctx.translate(-20 * s, 48 * s);
+    const bottleH = 44 * s, bottleW = 34 * s;
+    ctx.fillStyle = 'rgba(200,220,255,0.06)';
     ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 5 * s); ctx.fill();
-    ctx.strokeStyle = 'rgba(180,210,250,0.35)'; ctx.lineWidth = 2.5 * s;
+    ctx.strokeStyle = 'rgba(180,210,250,0.4)'; ctx.lineWidth = 2.5 * s;
     ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 5 * s); ctx.stroke();
     // liquid
     const soapH = (bubbleSoap / 30) * (bottleH - 8 * s);
     const liqY = -bottleH + 4 * s + (bottleH - 8 * s - soapH);
     const liqG = ctx.createLinearGradient(0, liqY, 0, liqY + soapH);
-    liqG.addColorStop(0, 'rgba(100,200,255,0.6)');
-    liqG.addColorStop(1, 'rgba(60,160,230,0.4)');
+    liqG.addColorStop(0, 'rgba(100,200,255,0.55)');
+    liqG.addColorStop(1, 'rgba(60,160,230,0.35)');
     ctx.fillStyle = liqG;
     ctx.roundRect(-bottleW / 2 + 4 * s, liqY, bottleW - 8 * s, soapH, 3 * s);
     ctx.fill();
-    // highlight on liquid
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.roundRect(-bottleW / 2 + 8 * s, liqY + 3 * s, bottleW - 16 * s, 4 * s, 1 * s);
+    ctx.roundRect(-bottleW / 2 + 8 * s, liqY + 3 * s, bottleW - 16 * s, 3 * s, 1 * s);
     ctx.fill();
-    // bubbles inside liquid
-    for (let i = 0; i < 3; i++) {
-      const bx = -bottleW / 4 + Math.random() * bottleW / 2;
-      const by = liqY + 6 * s + Math.random() * (soapH - 10 * s);
-      const br = (1.5 + Math.random() * 2) * s;
-      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fill();
-    }
-    // label
-    ctx.fillStyle = 'rgba(200,230,255,0.4)';
-    ctx.font = `bold ${10 * s}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('비눗방울', 0, -bottleH - 6 * s);
-    ctx.fillStyle = 'rgba(200,230,255,0.1)';
-    ctx.font = `${8 * s}px sans-serif`;
-    ctx.fillText(`🫧 ${Math.ceil(bubbleSoap)}%`, 0, -bottleH + 14 * s);
     ctx.restore();
     ctx.restore();
   }
@@ -778,21 +761,18 @@ const Interactions = (() => {
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
-    // vertical liquid gauge (left side inside body)
-    const gX = -12 * s, gW = 6 * s, gY = 6 * s, gH = 48 * s;
-    ctx.fillStyle = 'rgba(10,15,30,0.5)';
+    // top horizontal liquid gauge
+    const gW = 22 * s, gH = 6 * s, gX = -11 * s, gY = -2 * s;
+    ctx.fillStyle = 'rgba(10,15,30,0.6)';
     ctx.roundRect(gX, gY, gW, gH, 3 * s); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,255,200,0.12)';
-    ctx.lineWidth = 0.5;
-    ctx.roundRect(gX, gY, gW, gH, 3 * s); ctx.stroke();
-    const gFill = (vapeLiquid / 100) * (gH - 6 * s);
-    const gG = ctx.createLinearGradient(gX, gY + gH - gFill, gX, gY + gH);
-    gG.addColorStop(0, '#00ffcc');
-    gG.addColorStop(0.5, '#00ddaa');
-    gG.addColorStop(1, '#00bb88');
+    const gFill = (vapeLiquid / 100) * (gW - 6 * s);
+    const gG = ctx.createLinearGradient(gX, gY, gX + gW, gY);
+    gG.addColorStop(0, '#ff8800');
+    gG.addColorStop(0.5, '#ffcc00');
+    gG.addColorStop(1, '#44ff44');
     ctx.fillStyle = gG;
-    ctx.globalAlpha = 0.85;
-    ctx.roundRect(gX + 2 * s, gY + gH - 3 * s - gFill, gW - 4 * s, gFill, 2 * s); ctx.fill();
+    ctx.globalAlpha = 0.9;
+    ctx.roundRect(gX + 3 * s, gY + 1 * s, gFill, gH - 2 * s, 2 * s); ctx.fill();
     ctx.globalAlpha = 1;
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
