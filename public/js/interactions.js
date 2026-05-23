@@ -169,12 +169,13 @@ const Interactions = (() => {
       this.decay = opts.permanent ? 0 : (0.003 + Math.random() * 0.005);
       this.color = opts.color || [255, 180, 50];
       this.wind = opts.wind || 0;
+      this.straight = opts.straight || false;
     }
     update() {
       this.flicker += 0.05 + Math.random() * 0.12;
       this.size = this.maxSize * (0.78 + Math.sin(this.flicker) * 0.22 + Math.random() * 0.04);
-      this.x += Math.sin(this.flicker * 0.5) * 0.3 * baseScale + this.wind;
-      this.y = this.baseY - Math.abs(Math.sin(this.flicker * 0.3)) * 2 * baseScale;
+      if (!this.straight) this.x += Math.sin(this.flicker * 0.5) * 0.3 * baseScale + this.wind;
+      this.y = this.straight ? this.baseY - 1.5 * baseScale : this.baseY - Math.abs(Math.sin(this.flicker * 0.3)) * 2 * baseScale;
       if (!this.permanent) this.life -= this.decay;
     }
     draw(ctx) {
@@ -400,7 +401,6 @@ const Interactions = (() => {
         vapeLiquid = Math.max(0, vapeLiquid - 0.5);
       } else if (mode === 'bubble') {
         if (!sessionActive) startSession();
-        bubbleSoap = Math.max(0, bubbleSoap - 0.5);
       }
     }
     function onMove(e) { e.preventDefault(); }
@@ -720,7 +720,7 @@ const Interactions = (() => {
           particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
         }
       }
-      bubbleSoap = Math.max(0, bubbleSoap - 0.03);
+      bubbleSoap = Math.max(0, bubbleSoap - 0.017);
       if (bubbleSoap <= 0) { sessionActive = false; endSession(); }
     }
     ctx.save(); ctx.translate(cx, cy);
@@ -772,6 +772,10 @@ const Interactions = (() => {
     const rFill = (vapeLiquid / 100) * (rH - 4 * s);
     ctx.fillStyle = '#ff8800';
     ctx.roundRect(rX + 1 * s, rY + rH - 2 * s - rFill, rW - 2 * s, rFill, 1 * s); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = `bold ${7 * s}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`${Math.ceil(vapeLiquid)}%`, rX + rW / 2, rY + rH + 10 * s);
     // top horizontal liquid gauge
     const gW = 22 * s, gH = 6 * s, gX = -11 * s, gY = -2 * s;
     ctx.fillStyle = 'rgba(10,15,30,0.6)';
@@ -839,7 +843,7 @@ const Interactions = (() => {
       const burnedLen = burnRatio * 45 * s;
       const flameX = headX - burnedLen;
       const flSize = (10 - burnRatio * 5) * s;
-      const flame = new Flame(flameX, -8 * s, { size: Math.max(flSize, 2 * s), color: [255, 180 - burnRatio * 80, 50 - burnRatio * 30] });
+      const flame = new Flame(flameX, -8 * s, { size: Math.max(flSize, 2 * s), color: [255, 180 - burnRatio * 80, 50 - burnRatio * 30], straight: true });
       flame.update(); flame.draw(ctx);
       ctx.beginPath(); ctx.ellipse(flameX, 0, 2 * s, 5 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255,100,30,0.5)'; ctx.fill();
