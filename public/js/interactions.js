@@ -264,7 +264,7 @@ const Interactions = (() => {
   }
 
   function resetState() {
-    cig = { burn: 0, maxBurn: 80, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
+    cig = { burn: 0, maxBurn: 24, ash: 0, maxAsh: 50, lit: false, done: false, total: cig.total || 0 };
     match = { burning: false, burn: 0, maxBurn: 100, done: false, total: match.total || 0 };
     candle = { lit: false, melt: 0, height: 150, total: candle.total || 0 };
     candleFlame = null;
@@ -272,7 +272,7 @@ const Interactions = (() => {
     pipe = { lit: false, tobacco: 100, ash: 0, done: false, total: pipe.total || 0 };
     vapePuffing = false;
     vapeLiquid = 100;
-    bubbleSoap = 100;
+    bubbleSoap = 30;
     particles = [];
     trashAnim = null;
     sessionActive = false;
@@ -397,6 +397,7 @@ const Interactions = (() => {
       } else if (mode === 'vape') {
         vapePuffing = true;
         if (!sessionActive) startSession();
+        vapeLiquid = Math.max(0, vapeLiquid - 0.5);
       } else if (mode === 'bubble') {
         if (!sessionActive) startSession();
       }
@@ -718,7 +719,7 @@ const Interactions = (() => {
           particles.push(new Bubble(wandX + Math.cos(a) * 8 * s, wandY + Math.sin(a) * 8 * s));
         }
       }
-      bubbleSoap = Math.max(0, bubbleSoap - 0.004);
+      bubbleSoap = Math.max(0, bubbleSoap - 0.06);
       if (bubbleSoap <= 0) { sessionActive = false; endSession(); }
     }
     ctx.save(); ctx.translate(cx, cy);
@@ -729,14 +730,30 @@ const Interactions = (() => {
     ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
     ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
     // Soap bottle with liquid level
-    ctx.save(); ctx.translate(-35 * s, 50 * s);
-    const bottleH = 30 * s, bottleW = 24 * s;
-    ctx.strokeStyle = 'rgba(200,220,255,0.2)'; ctx.lineWidth = 1.5 * s;
-    ctx.strokeRect(-bottleW / 2, -bottleH, bottleW, bottleH, 3 * s);
-    const soapH = (bubbleSoap / 100) * (bottleH - 4 * s);
-    ctx.fillStyle = 'rgba(180,220,255,0.15)';
-    ctx.roundRect(-bottleW / 2 + 2 * s, -bottleH + 2 * s + (bottleH - 4 * s - soapH), bottleW - 4 * s, soapH, 2 * s);
+    ctx.save(); ctx.translate(-40 * s, 52 * s);
+    const bottleH = 40 * s, bottleW = 32 * s;
+    ctx.fillStyle = 'rgba(200,220,255,0.04)';
+    ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 4 * s); ctx.fill();
+    ctx.strokeStyle = 'rgba(180,210,250,0.3)'; ctx.lineWidth = 2 * s;
+    ctx.roundRect(-bottleW / 2, -bottleH, bottleW, bottleH, 4 * s); ctx.stroke();
+    // liquid
+    const soapH = (bubbleSoap / 30) * (bottleH - 6 * s);
+    const liqG = ctx.createLinearGradient(0, -bottleH + 6 * s + (bottleH - 6 * s - soapH), 0, -bottleH + 6 * s + (bottleH - 6 * s - soapH) + soapH);
+    liqG.addColorStop(0, 'rgba(160,220,255,0.5)');
+    liqG.addColorStop(0.5, 'rgba(130,200,255,0.4)');
+    liqG.addColorStop(1, 'rgba(100,180,240,0.3)');
+    ctx.fillStyle = liqG;
+    ctx.roundRect(-bottleW / 2 + 3 * s, -bottleH + 3 * s + (bottleH - 6 * s - soapH), bottleW - 6 * s, soapH, 2 * s);
     ctx.fill();
+    // highlight on liquid
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.roundRect(-bottleW / 2 + 5 * s, -bottleH + 3 * s + (bottleH - 6 * s - soapH) + 2 * s, bottleW - 10 * s, 3 * s, 1 * s);
+    ctx.fill();
+    // label
+    ctx.fillStyle = 'rgba(200,230,255,0.15)';
+    ctx.font = `${8 * s}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🫧', 0, -bottleH - 4 * s);
     ctx.restore();
     ctx.restore();
   }
@@ -750,12 +767,31 @@ const Interactions = (() => {
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
     ctx.fillStyle = '#203050';
     ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
-    const liquidH = (vapeLiquid / 100) * 40 * s;
-    const barX = 14 * s, barW = 3 * s, barY = 18 * s;
-    ctx.fillStyle = 'rgba(200,230,255,0.08)';
-    ctx.roundRect(barX, barY, barW, 40 * s, 1.5 * s); ctx.fill();
-    ctx.fillStyle = 'rgba(100,200,255,0.5)';
-    ctx.roundRect(barX, barY + 40 * s - liquidH, barW, liquidH, 1.5 * s); ctx.fill();
+    // 3-tier horizontal liquid gauge
+    const tiers = 3;
+    const tierW = 22 * s;
+    const tierH = 48 * s / tiers;
+    const gaugeX = -11 * s;
+    const gaugeY = 10 * s;
+    const edgeR = 2 * s;
+    for (let i = 0; i < tiers; i++) {
+      const yOff = gaugeY + (tiers - 1 - i) * tierH;
+      const filled = vapeLiquid > (i / tiers) * 100;
+      if (filled) {
+        const bright = 120 + i * 40;
+        ctx.fillStyle = `rgba(${bright},${180 + i * 20},255,0.45)`;
+      } else {
+        ctx.fillStyle = 'rgba(40,50,80,0.2)';
+      }
+      ctx.roundRect(gaugeX, yOff, tierW, tierH - 2 * s, edgeR); ctx.fill();
+      if (filled) {
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.roundRect(gaugeX + 2 * s, yOff + 2 * s, tierW - 4 * s, (tierH - 2 * s) / 3, edgeR); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(200,230,255,0.08)';
+      ctx.lineWidth = 0.5;
+      ctx.roundRect(gaugeX, yOff, tierW, tierH - 2 * s, edgeR); ctx.stroke();
+    }
     ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
     ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
     if (vapePuffing) {
@@ -772,7 +808,7 @@ const Interactions = (() => {
     ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
     ctx.restore();
     if (vapePuffing) {
-      vapeLiquid = Math.max(0, vapeLiquid - 0.0015);
+      vapeLiquid = Math.max(0, vapeLiquid - 0.015);
       if (vapeLiquid <= 0) { vapePuffing = false; sessionActive = false; endSession(); }
       if (Math.random() < 0.35) {
         particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 24 * s));
