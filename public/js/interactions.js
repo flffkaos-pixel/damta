@@ -406,12 +406,10 @@ const Interactions = (() => {
     canvas.addEventListener('touchstart', onDown, { passive: false });
     canvas.addEventListener('touchmove', onMove, { passive: false });
     canvas.addEventListener('touchend', onUp, { passive: false });
-    document.getElementById('canvas-wrap').addEventListener('click', (e) => {
-      const btn = e.target.closest('#end-options button');
-      if (!btn) return;
-      if (btn.id === 'more-btn') { resetState(); updateTotals(); }
-      if (btn.id === 'done-btn') { startTrashAnim(); }
-    });
+    const moreBtn = document.getElementById('more-btn');
+    const doneBtn = document.getElementById('done-btn');
+    if (moreBtn) moreBtn.onclick = () => resetState();
+    if (doneBtn) doneBtn.onclick = () => startTrashAnim();
   }
 
   function rot(cx, cy, dx, dy, angle) {
