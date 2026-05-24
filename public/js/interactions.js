@@ -610,7 +610,7 @@ const Interactions = (() => {
     const angle = -Math.PI / 6;
 
     if (cig.lit && !cig.done) {
-      cig.burn += (0.003 + (isPressed ? 0.004 : 0)) * 1.2;
+      cig.burn += (0.0024 + (isPressed ? 0.0032 : 0)) * 1.2;
       cig.ash += (0.003 + (isPressed ? 0.005 : 0)) * 1.2;
       if (cig.burn >= cig.maxBurn || cigLen * (1 - cig.burn / cig.maxBurn) <= 22 * s) { cig.done = true; cig.lit = false; endSession(); }
       if (cig.ash >= cig.maxAsh) {
