@@ -78,15 +78,15 @@ body {
   z-index: 9999; align-items: center;
 }
 #end-options button {
-  background: rgba(240,160,80,0.12); border: 1px solid rgba(240,160,80,0.2);
+  background: #2a2018; border: 1px solid #f0a050;
   color: #f0a050; padding: 12px 28px; border-radius: 20px;
   cursor: pointer; font-size: 15px; font-weight: 600;
   transition: all 0.25s; white-space: nowrap;
   min-width: 140px; letter-spacing: 1px;
 }
 #end-options button:hover {
-  background: rgba(240,160,80,0.25); border-color: rgba(240,160,80,0.4);
-  transform: scale(1.06);
+  background: #3a3028; border-color: #ffb860;
+  color: #ffb860; transform: scale(1.06);
 }
 #end-options button:active {
   transform: scale(0.96);
