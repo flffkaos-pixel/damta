@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://onlinedamta.fly.dev/sitemap.xml
+Sitemap: https://onlinedamta-z9u8.onrender.com/sitemap.xml
