@@ -1,3 +1,40 @@
 User-agent: *
 Allow: /
+Disallow: /js/
+Disallow: /css/
+Disallow: /server/
+
+# AI/Answer engine crawlers - welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Naver & Korean search
+User-agent: Yeti
+Allow: /
+
+User-agent: Naverbot
+Allow: /
+
 Sitemap: https://onlinedamta-z9u8.onrender.com/sitemap.xml
+Host: https://onlinedamta-z9u8.onrender.com

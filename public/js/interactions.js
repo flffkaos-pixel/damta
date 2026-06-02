@@ -651,6 +651,22 @@ const Interactions = (() => {
         ctx.strokeStyle = 'rgba(160,150,140,0.12)';
         ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.moveTo(filterW, bodyBot - 1); ctx.lineTo(filterW + paperLen, bodyBot - 1); ctx.stroke();
+        // subtle vertical fiber lines on paper
+        ctx.strokeStyle = 'rgba(160,150,140,0.06)'; ctx.lineWidth = 0.4;
+        for (let f = filterW + 2; f < filterW + paperLen - 2; f += 4) {
+          ctx.beginPath(); ctx.moveTo(f, bodyTop + 1); ctx.lineTo(f, bodyBot - 1); ctx.stroke();
+        }
+        // scorch gradient near tip (when lit, paper near ember darkens)
+        if (cig.lit && !cig.done) {
+          const tipX = remaining;
+          const scorchW = 18 * s;
+          const scorchGrd = ctx.createLinearGradient(tipX - scorchW, 0, tipX, 0);
+          scorchGrd.addColorStop(0, 'rgba(80,60,40,0)');
+          scorchGrd.addColorStop(0.5, 'rgba(100,75,50,0.25)');
+          scorchGrd.addColorStop(1, 'rgba(50,35,20,0.5)');
+          ctx.fillStyle = scorchGrd;
+          ctx.fillRect(Math.max(filterW, tipX - scorchW), bodyTop, scorchW, cigW);
+        }
       }
 
       // ── cork filter ──
@@ -721,12 +737,50 @@ const Interactions = (() => {
     }
     if (bubbleSoap <= 0 && sessionActive) { sessionActive = false; endSession(); }
     ctx.save(); ctx.translate(cx, cy);
-    ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 3 * s;
-    ctx.beginPath(); ctx.moveTo(0, 20 * s); ctx.lineTo(0, -15 * s); ctx.stroke();
-    ctx.strokeStyle = 'rgba(180,200,230,0.4)'; ctx.lineWidth = 2.5 * s;
-    ctx.beginPath(); ctx.arc(0, -20 * s, 14 * s, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = 'rgba(200,220,255,0.15)'; ctx.lineWidth = 1.5 * s;
-    ctx.beginPath(); ctx.arc(0, -20 * s, 11 * s, 0, Math.PI * 2); ctx.stroke();
+
+    // wand handle (wooden stick with grain)
+    const handleGrd = ctx.createLinearGradient(-3 * s, 0, 3 * s, 0);
+    handleGrd.addColorStop(0, '#5a4a3a');
+    handleGrd.addColorStop(0.5, '#8a7a65');
+    handleGrd.addColorStop(1, '#4a3a2a');
+    ctx.fillStyle = handleGrd;
+    ctx.fillRect(-3 * s, 18 * s, 6 * s, -32 * s);
+    ctx.strokeStyle = 'rgba(60,40,20,0.35)'; ctx.lineWidth = 0.6;
+    for (let g = 18 * s; g > -16 * s; g -= 4 * s) {
+      ctx.beginPath(); ctx.moveTo(-2.5 * s, g); ctx.lineTo(2.5 * s, g - 1); ctx.stroke();
+    }
+
+    // wand neck (curved bend into ring)
+    ctx.strokeStyle = '#6a5a4a'; ctx.lineWidth = 3 * s; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -14 * s);
+    ctx.quadraticCurveTo(0, -18 * s, 6 * s, -18 * s);
+    ctx.stroke();
+
+    // ring loop (bubble film)
+    const ringGrd = ctx.createLinearGradient(0, -32 * s, 0, -8 * s);
+    ringGrd.addColorStop(0, '#7a6a5a');
+    ringGrd.addColorStop(0.5, '#a08a78');
+    ringGrd.addColorStop(1, '#5a4a3a');
+    ctx.strokeStyle = ringGrd; ctx.lineWidth = 2.2 * s;
+    ctx.beginPath(); ctx.arc(6 * s, -18 * s, 14 * s, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+
+    // soap film inside ring (only when wet)
+    if (bubbleSoap > 1) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(-8 * s, -34 * s, 28 * s, 30 * s); ctx.clip();
+      ctx.beginPath(); ctx.arc(6 * s, -18 * s, 12.5 * s, 0, Math.PI * 2);
+      const filmAlpha = 0.2 + Math.sin(Date.now() * 0.003) * 0.05;
+      const filmGrd = ctx.createRadialGradient(6 * s, -20 * s, 0, 6 * s, -18 * s, 12 * s);
+      filmGrd.addColorStop(0, `rgba(220,240,255,${filmAlpha + 0.15})`);
+      filmGrd.addColorStop(0.5, `rgba(150,200,255,${filmAlpha})`);
+      filmGrd.addColorStop(1, `rgba(80,140,220,${filmAlpha - 0.1})`);
+      ctx.fillStyle = filmGrd; ctx.fill();
+      ctx.beginPath(); ctx.arc(2 * s, -22 * s, 3.5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fill();
+      ctx.restore();
+    }
+
     // soap gauge bar with circle at end
     const barX = -30 * s, barY = 40 * s, barW = 60 * s, barH = 8 * s;
     const fillW = (bubbleSoap / 30) * barW;
@@ -747,14 +801,65 @@ const Interactions = (() => {
     const s = baseScale;
     const cx = W / 2, cy = H * 0.5 - 30 * s;
     ctx.save(); ctx.translate(cx, cy);
-    ctx.fillStyle = '#182038';
+
+    // body shell (dark metallic)
+    const bodyGrd = ctx.createLinearGradient(-16 * s, 0, 16 * s, 0);
+    bodyGrd.addColorStop(0, '#0a1020');
+    bodyGrd.addColorStop(0.25, '#1a2540');
+    bodyGrd.addColorStop(0.55, '#203050');
+    bodyGrd.addColorStop(0.85, '#1a2540');
+    bodyGrd.addColorStop(1, '#0a1020');
+    ctx.fillStyle = bodyGrd;
     ctx.roundRect(-16 * s, -5 * s, 32 * s, 70 * s, 6 * s); ctx.fill();
-    ctx.fillStyle = '#203050';
-    ctx.roundRect(-14 * s, -3 * s, 28 * s, 64 * s, 5 * s); ctx.fill();
-    // wide gauge bar inside upper body
+
+    // body inner highlight
+    ctx.fillStyle = 'rgba(80,110,160,0.15)';
+    ctx.fillRect(-14 * s, 0, 28 * s, 2 * s);
+
+    // bottom cap (510 connector)
+    ctx.fillStyle = '#0a0a14';
+    ctx.roundRect(-13 * s, 60 * s, 26 * s, 8 * s, 3 * s); ctx.fill();
+    ctx.strokeStyle = '#3a4a60'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(-11 * s, 62 * s); ctx.lineTo(11 * s, 62 * s); ctx.stroke();
+
+    // top tank section (clearomizer, slightly tapered)
+    const tankGrd = ctx.createLinearGradient(-10 * s, 0, 10 * s, 0);
+    tankGrd.addColorStop(0, '#1a1a2a');
+    tankGrd.addColorStop(0.5, '#2a2a3a');
+    tankGrd.addColorStop(1, '#1a1a2a');
+    ctx.fillStyle = tankGrd;
+    ctx.roundRect(-10 * s, -22 * s, 20 * s, 20 * s, [3 * s, 3 * s, 0, 0]); ctx.fill();
+    // glass tube window
+    ctx.fillStyle = 'rgba(60,80,110,0.25)';
+    ctx.fillRect(-8 * s, -19 * s, 16 * s, 15 * s);
+    // e-liquid inside (mini visual)
+    const liqH = 15 * s * (vapeLiquid / 100);
+    const liqGrd = ctx.createLinearGradient(0, -4 * s, 0, -4 * s + liqH);
+    liqGrd.addColorStop(0, 'rgba(255,200,50,0.5)');
+    liqGrd.addColorStop(1, 'rgba(200,140,20,0.4)');
+    ctx.fillStyle = liqGrd;
+    ctx.fillRect(-7.5 * s, -4 * s, 15 * s, liqH);
+
+    // drip tip (mouthpiece) — black narrow cone
+    ctx.fillStyle = '#08080c';
+    ctx.beginPath();
+    ctx.moveTo(-5 * s, -22 * s);
+    ctx.lineTo(-6 * s, -30 * s);
+    ctx.lineTo(6 * s, -30 * s);
+    ctx.lineTo(5 * s, -22 * s);
+    ctx.closePath();
+    ctx.fill();
+    // drip tip highlight
+    ctx.fillStyle = 'rgba(80,80,100,0.4)';
+    ctx.fillRect(-5 * s, -29 * s, 10 * s, 1 * s);
+
+    // wide gauge bar inside body
     const iGW = 22 * s, iGH = 12 * s, iGX = -11 * s, iGY = 24 * s;
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.roundRect(iGX, iGY, iGW, iGH, 3 * s); ctx.fill();
+    // gauge bezel
+    ctx.strokeStyle = '#4a5a78'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.roundRect(iGX, iGY, iGW, iGH, 3 * s); ctx.stroke();
     const iGFill = (vapeLiquid / 100) * (iGW - 6 * s);
     const gG = ctx.createLinearGradient(iGX, iGY, iGX + iGW, iGY);
     gG.addColorStop(0, '#ff8800');
@@ -762,26 +867,40 @@ const Interactions = (() => {
     gG.addColorStop(1, '#44ff44');
     ctx.fillStyle = gG;
     ctx.roundRect(iGX + 3 * s, iGY + 2 * s, iGFill, iGH - 4 * s, 2 * s); ctx.fill();
-    ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
-    ctx.fillStyle = vapePuffing ? '#ff2200' : '#880022'; ctx.fill();
+
+    // fire button (round, red LED ring)
+    const btnY = 45 * s;
+    ctx.beginPath(); ctx.arc(0, btnY, 6 * s, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a1a2a'; ctx.fill();
+    ctx.strokeStyle = '#3a3a48'; ctx.lineWidth = 1;
+    ctx.stroke();
     if (vapePuffing) {
-      ctx.beginPath(); ctx.arc(0, 10 * s, 14 * s, 0, Math.PI * 2);
-      const g = ctx.createRadialGradient(0, 10 * s, 0, 0, 10 * s, 14 * s);
-      g.addColorStop(0, 'rgba(255,30,0,0.3)'); g.addColorStop(1, 'rgba(255,30,0,0)');
-      ctx.fillStyle = g; ctx.fill();
-      ctx.beginPath(); ctx.arc(0, 10 * s, 5 * s, 0, Math.PI * 2);
-      ctx.fillStyle = '#ff3300'; ctx.fill();
+      ctx.beginPath(); ctx.arc(0, btnY, 4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff2200'; ctx.fill();
+      // LED glow
+      ctx.beginPath(); ctx.arc(0, btnY, 9 * s, 0, Math.PI * 2);
+      const ledG = ctx.createRadialGradient(0, btnY, 0, 0, btnY, 9 * s);
+      ledG.addColorStop(0, 'rgba(255,30,0,0.45)');
+      ledG.addColorStop(1, 'rgba(255,30,0,0)');
+      ctx.fillStyle = ledG; ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(0, btnY, 4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#440011'; ctx.fill();
     }
-    ctx.fillStyle = '#3a3a48';
-    ctx.roundRect(-8 * s, -18 * s, 16 * s, 14 * s, 3 * s); ctx.fill();
-    ctx.fillStyle = '#4a4a58';
-    ctx.roundRect(-6 * s, -22 * s, 12 * s, 6 * s, 2 * s); ctx.fill();
+
+    // brand text on body
+    ctx.fillStyle = 'rgba(140,170,210,0.35)';
+    ctx.font = `bold ${3.5 * s}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('VAPE', 0, 14 * s);
+    ctx.textAlign = 'start';
+
     ctx.restore();
     if (vapePuffing) {
       vapeLiquid = Math.max(0, vapeLiquid - 0.015);
       if (vapeLiquid <= 0) { vapePuffing = false; sessionActive = false; endSession(); }
       if (Math.random() < 0.35) {
-        particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 24 * s));
+        particles.push(new VapeCloud(cx + (Math.random() - 0.5) * 3 * s, cy - 32 * s));
       }
     }
   }
@@ -794,19 +913,50 @@ const Interactions = (() => {
     const stickLen = 80 * s;
     const headX = stickLen;
 
-    ctx.fillStyle = '#d4b080';
-    ctx.roundRect(0, -2.5 * s, stickLen, 5 * s, 1); ctx.fill();
-    ctx.strokeStyle = 'rgba(180,140,100,0.2)';
-    ctx.lineWidth = 0.5;
-    for (let g = 5 * s; g < stickLen; g += 8 * s) {
-      ctx.beginPath(); ctx.moveTo(g, -2 * s); ctx.lineTo(g + 3 * s, 2 * s); ctx.stroke();
+    // wood stick with gradient
+    const stickGrd = ctx.createLinearGradient(0, -2.5 * s, 0, 2.5 * s);
+    stickGrd.addColorStop(0, '#b8945e');
+    stickGrd.addColorStop(0.3, '#e0c290');
+    stickGrd.addColorStop(0.55, '#d8b880');
+    stickGrd.addColorStop(0.85, '#a8845a');
+    stickGrd.addColorStop(1, '#8a6a40');
+    ctx.fillStyle = stickGrd;
+    ctx.roundRect(0, -2.5 * s, stickLen, 5 * s, 1.2); ctx.fill();
+    // wood grain lines
+    ctx.strokeStyle = 'rgba(120,80,40,0.18)';
+    ctx.lineWidth = 0.4;
+    for (let g = 3 * s; g < stickLen; g += 3.5 * s) {
+      ctx.beginPath(); ctx.moveTo(g, -2 * s); ctx.lineTo(g + 1.5 * s, 2 * s); ctx.stroke();
     }
+    // tip end (rounded cap)
+    ctx.fillStyle = 'rgba(60,40,20,0.5)';
+    ctx.beginPath(); ctx.arc(0, 0, 2.5 * s, Math.PI / 2, -Math.PI / 2); ctx.fill();
 
     if (!match.burning && !match.done) {
-      ctx.beginPath(); ctx.arc(headX, 0, 7 * s, 0, Math.PI * 2);
-      ctx.fillStyle = '#cc5533'; ctx.fill();
-      ctx.beginPath(); ctx.arc(headX, 0, 9 * s, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(200,80,40,0.12)'; ctx.fill();
+      // chemical head with red stripes (like safety matches)
+      const headGrd = ctx.createRadialGradient(headX, 0, 0, headX, 0, 8 * s);
+      headGrd.addColorStop(0, '#ee7755');
+      headGrd.addColorStop(0.6, '#cc4a2a');
+      headGrd.addColorStop(1, '#8a2810');
+      ctx.fillStyle = headGrd;
+      ctx.beginPath(); ctx.arc(headX, 0, 7 * s, 0, Math.PI * 2); ctx.fill();
+      // dark stripes (sulfur + oxidizer pattern)
+      ctx.strokeStyle = 'rgba(40,15,5,0.45)'; ctx.lineWidth = 0.8;
+      for (let st = -5; st <= 5; st += 2.5) {
+        ctx.beginPath();
+        ctx.moveTo(headX + Math.cos(st * 0.3) * 6 * s, st * s);
+        ctx.lineTo(headX + Math.cos(st * 0.3) * 3 * s, st * s + 1);
+        ctx.stroke();
+      }
+      // small highlight
+      ctx.fillStyle = 'rgba(255,200,150,0.35)';
+      ctx.beginPath(); ctx.arc(headX - 2 * s, -2 * s, 2 * s, 0, Math.PI * 2); ctx.fill();
+      // glow halo
+      ctx.beginPath(); ctx.arc(headX, 0, 11 * s, 0, Math.PI * 2);
+      const haloGrd = ctx.createRadialGradient(headX, 0, 5 * s, headX, 0, 11 * s);
+      haloGrd.addColorStop(0, 'rgba(200,80,40,0.0)');
+      haloGrd.addColorStop(1, 'rgba(200,80,40,0.18)');
+      ctx.fillStyle = haloGrd; ctx.fill();
     }
 
     if (match.burning && !match.done) {
@@ -832,12 +982,21 @@ const Interactions = (() => {
         grd.addColorStop(0, '#3a2510'); grd.addColorStop(1, '#5a3520');
         ctx.fillStyle = grd;
         ctx.roundRect(headX - burnedLen, -2.5 * s, burnedLen, 5 * s, 1); ctx.fill();
+        // char texture
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        for (let c = 0; c < 6; c++) {
+          const cx2 = headX - Math.random() * burnedLen;
+          ctx.fillRect(cx2, -2.5 * s, 0.5, 5 * s);
+        }
       }
     }
 
     if (match.done) {
       ctx.fillStyle = '#3a2510';
       ctx.roundRect(headX - 40 * s, -2.5 * s, 40 * s, 5 * s, 1); ctx.fill();
+      // black char tip
+      ctx.fillStyle = '#1a0a02';
+      ctx.beginPath(); ctx.arc(headX, 0, 2.5 * s, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
   }
@@ -850,30 +1009,59 @@ const Interactions = (() => {
     let candleH = Math.max(candle.height - candle.melt, 10) * s;
 
     ctx.save(); ctx.translate(cx, cy);
+    // body gradient (3D)
     const grd = ctx.createLinearGradient(-candleW / 2, 0, candleW / 2, 0);
-    grd.addColorStop(0, '#d8ccb8'); grd.addColorStop(0.5, '#ece4d4'); grd.addColorStop(1, '#d0c4b0');
+    grd.addColorStop(0, '#c8b8a0');
+    grd.addColorStop(0.15, '#dcc8a8');
+    grd.addColorStop(0.5, '#ece0c4');
+    grd.addColorStop(0.85, '#d4c0a0');
+    grd.addColorStop(1, '#b8a888');
     ctx.fillStyle = grd;
     ctx.roundRect(-candleW / 2, -candleH, candleW, candleH, 4 * s); ctx.fill();
-    if (candle.melt > 0) {
-      ctx.fillStyle = 'rgba(200,185,165,0.35)';
-      ctx.roundRect(-candleW / 2, -candleH, candleW, Math.min(candle.melt * s, 12 * s), 2 * s); ctx.fill();
-      for (let d = 0; d < 3; d++) {
-        const dx = -candleW / 2 + 4 * s + d * 8 * s;
-        ctx.fillRect(dx, -candleH, 3 * s, (4 + Math.random() * 4) * s);
+
+    // top wax pool (darker, melted)
+    const poolH = Math.min(candle.melt * s, 6 * s);
+    if (poolH > 0) {
+      ctx.fillStyle = '#a89070';
+      ctx.beginPath(); ctx.ellipse(0, -candleH + 2 * s, candleW / 2 - 1 * s, 3 * s, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // wax drips on sides
+    if (candle.melt > 5) {
+      const dripCount = Math.min(Math.floor(candle.melt / 4), 4);
+      ctx.fillStyle = 'rgba(220,200,170,0.7)';
+      for (let d = 0; d < dripCount; d++) {
+        const dAngle = (d / dripCount) * Math.PI * 2 + Date.now() * 0.0002;
+        const dx = Math.cos(dAngle) * (candleW / 2 - 2 * s);
+        const dy = -candleH + Math.random() * 4 * s;
+        const dripLen = (5 + Math.random() * 8) * s;
+        ctx.beginPath();
+        ctx.moveTo(dx - 1.5 * s, dy);
+        ctx.quadraticCurveTo(dx, dy + dripLen * 0.5, dx, dy + dripLen);
+        ctx.quadraticCurveTo(dx, dy + dripLen * 0.5, dx + 1.5 * s, dy);
+        ctx.fill();
       }
     }
-    ctx.strokeStyle = '#302018'; ctx.lineWidth = 2 * s;
+
+    // wick (black, slightly bent)
+    const wickTop = -candleH - 6 * s;
+    ctx.strokeStyle = '#1a1410'; ctx.lineWidth = 1.8 * s; ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(0, -candleH);
-    ctx.quadraticCurveTo(2 * s + Math.sin(Date.now() * 0.003) * 1.5 * s, -candleH - 8 * s, 1 * s, -candleH - 6 * s);
+    ctx.quadraticCurveTo(1 * s, -candleH - 4 * s, 0, wickTop);
     ctx.stroke();
+    // burnt wick tip (glowing)
+    if (candle.lit) {
+      ctx.fillStyle = '#ffaa44';
+      ctx.beginPath(); ctx.arc(0, wickTop + 1 * s, 1.2 * s, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
 
     if (candle.lit && candleFlame) {
       candle.melt += 0.006;
       if (candleH <= 10 * s) { candle.lit = false; candleFlame = null; endSession(); return; }
       const cx2 = cx + Math.sin(Date.now() * 0.003) * 1.5 * s;
-      const cy2 = cy - candleH - 8 * s;
+      const cy2 = cy - candleH - 6 * s;
       candleFlame.x = cx2; candleFlame.y = cy2; candleFlame.baseY = cy2;
       const flameSizeRatio = Math.max(candleH / (candle.height * s), 0.2);
       candleFlame.maxSize = 14 * s * flameSizeRatio;
