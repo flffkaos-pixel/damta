@@ -5,10 +5,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const socket = Chat.init();
   Interactions._setSocket(socket);
-
-  document.querySelectorAll('.interact-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      Interactions.setMode(btn.dataset.mode);
-    });
-  });
 });
