@@ -1,4 +1,10 @@
 node_modules/
 npm-debug.log*
 .env
+.env.local
 flyctl/
+.wrangler/
+.dev.vars
+*.log
+.DS_Store
+Thumbs.db
