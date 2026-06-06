@@ -1,8 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /js/
-Disallow: /css/
-Disallow: /server/
+Disallow: /functions/
 
 # AI/Answer engine crawlers - welcome
 User-agent: GPTBot
@@ -36,5 +34,9 @@ Allow: /
 User-agent: Naverbot
 Allow: /
 
-Sitemap: https://onlinedamta-z9u8.onrender.com/sitemap.xml
-Host: https://onlinedamta-z9u8.onrender.com
+# Google AdSense crawler
+User-agent: Mediapartners-Google
+Allow: /
+
+Sitemap: https://onlinedamta.pages.dev/sitemap.xml
+Host: https://onlinedamta.pages.dev
