@@ -59,32 +59,126 @@ const Interactions = (() => {
       this.nickname = nickname;
       this.text = text;
       this.life = 1;
-      this.decay = 0.002 + Math.random() * 0.002;
-      this.x = 10 + Math.random() * Math.max(W - 80, 100);
-      this.y = H * 0.25 + Math.random() * H * 0.25;
-      this.vy = (-0.2 - Math.random() * 0.25) * baseScale;
-      this.vx = (Math.random() - 0.5) * 0.08 * baseScale;
+      this.decay = 0.0014 + Math.random() * 0.0010;
+      this.x = 0;
+      this.y = H * 0.32 + Math.random() * H * 0.12;
+      this.vy = (-0.18 - Math.random() * 0.16) * baseScale;
+      this.vx = (Math.random() - 0.5) * 0.05 * baseScale;
+      this.scale = 0.6;
+      this.targetScale = 1;
+      this.wobble = Math.random() * Math.PI * 2;
+      this.puffs = this._buildPuffs();
+      this.trail = [];
+      this.trailTimer = 0;
+      this._tx = 0;
+      this._ty = 0;
+      this._w = 0;
+    }
+    _buildPuffs() {
+      const s = baseScale;
+      const arr = [
+        { dx: 0, dy: 0, r: 22 * s },
+        { dx: -18 * s, dy: -2 * s, r: 16 * s },
+        { dx: 18 * s, dy: -3 * s, r: 17 * s },
+        { dx: -10 * s, dy: -12 * s, r: 14 * s },
+        { dx: 12 * s, dy: -13 * s, r: 15 * s },
+        { dx: 0, dy: -16 * s, r: 13 * s }
+      ];
+      return arr;
     }
     update() {
       this.x += this.vx;
       this.y += this.vy;
-      this.vy *= 0.995;
+      this.vy *= 0.998;
       this.life -= this.decay;
+      this.wobble += 0.04;
+      this.scale += (this.targetScale - this.scale) * 0.08;
+
+      this.trailTimer++;
+      if (this.trailTimer % 5 === 0 && this.life > 0.35) {
+        this.trail.push({
+          ox: (Math.random() - 0.5) * 20 * baseScale,
+          oy: 6 * baseScale + Math.random() * 6 * baseScale,
+          r: (3 + Math.random() * 4) * baseScale,
+          life: 0.5
+        });
+      }
+      this.trail = this.trail.filter(p => { p.life -= 0.018; return p.life > 0; });
+      if (this.trail.length > 6) this.trail.shift();
     }
     draw(ctx) {
       if (this.life <= 0) return;
-      const alpha = Math.min(this.life * 2, 0.85);
       const s = baseScale;
-      ctx.font = `bold ${9 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
-      const nickW = ctx.measureText(this.nickname + ': ').width;
-      const fullText = this.nickname + ': ' + this.text;
-      const m = ctx.measureText(fullText);
-      const tw = Math.min(m.width, W * 0.75);
-      const tx = Math.max(8, Math.min(this.x, W - tw - 8));
-      ctx.fillStyle = `rgba(240,160,80,${alpha * 0.85})`;
-      ctx.fillText(this.nickname + ':', tx, this.y);
-      ctx.fillStyle = `rgba(220,205,185,${alpha * 0.75})`;
-      ctx.fillText(this.text, tx + ctx.measureText(this.nickname + ': ').width, this.y);
+      const fs = 9.5 * s;
+      ctx.font = `bold ${fs}px -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif`;
+      const nick = this.nickname.length > 12 ? this.nickname.slice(0, 12) + '…' : this.nickname;
+      const m = ctx.measureText(this.text);
+      const textW = Math.min(m.width, W * 0.62);
+      const cloudR = Math.max(textW / 2 + 26 * s, 48 * s);
+      const cloudW = cloudR * 2;
+      const cloudH = cloudR * 1.1;
+
+      const wobX = Math.sin(this.wobble) * 0.4 * s;
+      let tx = this.x - cloudR + wobX;
+      let ty = this.y - cloudH * 0.55;
+      if (tx < 6) tx = 6;
+      if (tx + cloudW > W - 6) tx = W - cloudW - 6;
+      if (ty < 6) ty = 6;
+      this._tx = tx; this._ty = ty; this._w = cloudW;
+
+      const alpha = Math.min(this.life * 1.6, 0.95);
+      const alphaSoft = alpha * 0.85;
+
+      ctx.save();
+      ctx.translate(tx + cloudR, ty + cloudH * 0.5);
+      ctx.scale(this.scale * (1 + Math.sin(this.wobble * 1.3) * 0.015), this.scale);
+
+      for (const p of this.trail) {
+        ctx.beginPath();
+        ctx.arc(p.ox, p.oy, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(225,215,200,${p.life * 0.22})`;
+        ctx.fill();
+      }
+
+      ctx.globalCompositeOperation = 'lighter';
+      for (const pf of this.puffs) {
+        const grad = ctx.createRadialGradient(pf.dx, pf.dy, 0, pf.dx, pf.dy, pf.r);
+        grad.addColorStop(0, `rgba(255,240,215,${alphaSoft * 0.55})`);
+        grad.addColorStop(0.55, `rgba(235,215,185,${alphaSoft * 0.32})`);
+        grad.addColorStop(1, `rgba(200,180,150,0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pf.dx, pf.dy, pf.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = `rgba(255,225,180,${alpha * 0.22})`;
+      for (const pf of this.puffs) {
+        ctx.beginPath();
+        ctx.arc(pf.dx, pf.dy, pf.r * 0.98, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = `rgba(50,30,15,${alpha * 0.55})`;
+      ctx.fillText(nick, 1, -fs * 0.85 + 1);
+      ctx.fillStyle = `rgba(50,30,15,${alpha * 0.45})`;
+      ctx.fillText(this.text, 1, fs * 0.55 + 1);
+
+      ctx.fillStyle = `rgba(255,180,90,${alpha})`;
+      ctx.fillText(nick, 0, -fs * 0.85);
+      ctx.fillStyle = `rgba(250,240,225,${alpha * 0.97})`;
+      ctx.fillText(this.text, 0, fs * 0.55);
+
+      ctx.restore();
+    }
+    hitTest(px, py) {
+      if (this.life <= 0) return false;
+      return px >= this._tx && px <= this._tx + this._w &&
+             py >= this._ty && py <= this._ty + 36 * baseScale;
     }
   }
 

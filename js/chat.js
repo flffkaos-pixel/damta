@@ -24,7 +24,18 @@ const Chat = (() => {
       listeners[type] = fn;
     },
     get nickname() { return nickname; },
+    get connected() { return ws && ws.readyState === WebSocket.OPEN; },
   };
+
+  function setStatus(state, msg) {
+    const el = document.getElementById('chat-status');
+    if (!el) return;
+    el.className = 'chat-status chat-status--' + state;
+    el.title = msg || '';
+    if (state === 'on') el.textContent = '●';
+    else if (state === 'off') el.textContent = '○';
+    else el.textContent = '◐';
+  }
 
   function init() {
     connect();
@@ -68,7 +79,9 @@ const Chat = (() => {
 
     try {
       ws = new WebSocket(url);
+      setStatus('connecting', '연결 중…');
     } catch (e) {
+      setStatus('off', '연결 실패: ' + (e.message || 'unknown'));
       scheduleReconnect();
       return;
     }
@@ -76,6 +89,7 @@ const Chat = (() => {
     ws.addEventListener('open', () => {
       reconnectAttempts = 0;
       isAlive = true;
+      setStatus('on', '채팅 서버 연결됨');
       if (pingTimer) clearInterval(pingTimer);
       pingTimer = setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
@@ -109,21 +123,22 @@ const Chat = (() => {
       }
     });
 
-    ws.addEventListener('close', () => {
+    ws.addEventListener('close', (ev) => {
       if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+      setStatus('off', '연결 끊김 (코드 ' + ev.code + '). 재연결 중…');
       scheduleReconnect();
     });
 
     ws.addEventListener('error', () => {
-      // 'error' is followed by 'close'
+      setStatus('off', '서버 오류 - Durable Object 바인딩을 확인하세요');
     });
   }
 
   function scheduleReconnect() {
     if (reconnectTimer) return;
     reconnectAttempts++;
-    // exponential backoff: 1s, 2s, 4s, 8s, max 15s
     const delay = Math.min(15000, 1000 * Math.pow(2, reconnectAttempts - 1));
+    setStatus('off', '재연결 시도 ' + reconnectAttempts + '회 (대기 ' + Math.round(delay/1000) + '초)');
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
       connect();
