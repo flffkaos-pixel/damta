@@ -1,22 +1,10 @@
 name = "onlinedamta"
 compatibility_date = "2024-12-01"
-compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./public"
 
-# Durable Object: 채팅방 (1개 인스턴스로 모든 클라이언트 처리)
+# Durable Object binding (Pages requires script_name)
+# script_name = Pages project name (where the DO class is defined in functions/)
 [[durable_objects.bindings]]
 name = "CHAT_ROOM"
 class_name = "ChatRoom"
-
-# 첫 배포 시 ChatRoom 클래스 생성
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["ChatRoom"]
-
-[build]
-command = ""
-
-[build.upload]
-dir = "./public"
-include = ["**/*"]
-exclude = ["**/node_modules/**"]
+script_name = "onlinedamta"
