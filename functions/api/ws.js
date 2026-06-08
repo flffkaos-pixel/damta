@@ -10,6 +10,7 @@ export class ChatRoom {
     this.nicknameMap = new Map();
     this.totalVapes = 0;
     this.statsDate = new Date().toDateString();
+    this.messages = [];
     this.state.blockConcurrencyWhile(this.init.bind(this));
   }
 
@@ -25,10 +26,33 @@ export class ChatRoom {
   }
 
   async fetch(request) {
-    if (request.headers.get('Upgrade') !== 'websocket') {
-      return new Response('Expected WebSocket', { status: 400 });
+    // WebSocket upgrade
+    if (request.headers.get('Upgrade') === 'websocket') {
+      return this.handleWebSocket(request);
     }
-    return this.handleWebSocket(request);
+    // HTTP polling: GET /chat-get?since=ts
+    const url = new URL(request.url);
+    if (url.pathname === '/chat-get' && request.method === 'GET') {
+      const since = parseInt(url.searchParams.get('since') || '0', 10);
+      const recentMsgs = this.messages.filter(m => m.time > since);
+      return new Response(JSON.stringify({
+        messages: recentMsgs.slice(-50),
+        online: this.sessions.size,
+      }));
+    }
+    // HTTP polling: POST /chat-post
+    if (url.pathname === '/chat-post' && request.method === 'POST') {
+      const body = await request.json();
+      const text = String(body.text || '').trim().substring(0, 500);
+      if (!text) return new Response(JSON.stringify({ ok: false }));
+      const nickname = body.nickname || this.randomNickname();
+      const msg = { type: 'chat-msg', nickname, text, time: Date.now() };
+      this.messages.push(msg);
+      if (this.messages.length > 200) this.messages.splice(0, this.messages.length - 200);
+      this.broadcast(msg);
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    return new Response('Not Found', { status: 404 });
   }
 
   handleWebSocket(request) {
@@ -66,7 +90,10 @@ export class ChatRoom {
     if (msg.type === 'chat') {
       const text = String(msg.text || '').trim().substring(0, 500);
       if (!text) return;
-      this.broadcast({ type: 'chat-msg', nickname, text, time: Date.now() });
+      const chatMsg = { type: 'chat-msg', nickname, text, time: Date.now() };
+      this.messages.push(chatMsg);
+      if (this.messages.length > 200) this.messages.splice(0, this.messages.length - 200);
+      this.broadcast(chatMsg);
     } else if (msg.type === 'vape-done') {
       this.totalVapes++;
       this.broadcastStats();
