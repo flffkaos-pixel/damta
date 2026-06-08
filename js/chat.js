@@ -58,6 +58,8 @@ const Chat = (() => {
     nickname = genNickname();
     const nickEl = el('user-nickname');
     if (nickEl) nickEl.textContent = nickname;
+    const onlineEl = el('stat-online');
+    if (onlineEl) onlineEl.textContent = '1';
     nicknameSet = true;
     if (listeners['init']) listeners['init']({ nickname });
     tryConnect();
@@ -169,14 +171,13 @@ const Chat = (() => {
             }
           }
         }
-        if (typeof data.online === 'number') {
-          if (el('stat-online')) el('stat-online').textContent = data.online;
-          setStatus(data.online > 0 ? 'on' : 'off', data.online > 0 ? data.online + '명 접속' : '대기 중');
-        }
+        const online = Math.max(1, data.online || 0);
+        if (el('stat-online')) el('stat-online').textContent = online;
+        setStatus('on', online + '명 접속');
         if (data.error && data.error.includes('binding')) {
           mode = 'local';
-          setStatus('off', '설정 필요');
-          if (el('stat-online')) el('stat-online').textContent = '0';
+          setStatus('on', '나 포함 1명');
+          if (el('stat-online')) el('stat-online').textContent = '1';
         }
       })
       .catch(() => {})

@@ -60,8 +60,8 @@ const Interactions = (() => {
       this.text = text;
       this.life = 1;
       this.decay = 0.0014 + Math.random() * 0.0010;
-      this.x = 0;
-      this.y = H * 0.32 + Math.random() * H * 0.12;
+      this.x = 20 + Math.random() * Math.max(W * 0.7, 140);
+      this.y = H * 0.25 + Math.random() * H * 0.18;
       this.vy = (-0.18 - Math.random() * 0.16) * baseScale;
       this.vx = (Math.random() - 0.5) * 0.05 * baseScale;
       this.scale = 0.6;
@@ -152,14 +152,6 @@ const Interactions = (() => {
         ctx.fill();
       }
       ctx.globalCompositeOperation = 'source-over';
-
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = `rgba(255,225,180,${alpha * 0.22})`;
-      for (const pf of this.puffs) {
-        ctx.beginPath();
-        ctx.arc(pf.dx, pf.dy, pf.r * 0.98, 0, Math.PI * 2);
-        ctx.stroke();
-      }
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
