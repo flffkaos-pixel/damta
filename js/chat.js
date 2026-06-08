@@ -1,68 +1,72 @@
-// Hybrid chat client: WebSocket (primary) + HTTP polling (fallback)
+// Hybrid chat client: WebSocket (primary) + HTTP polling (fallback) + local mode
 // Exposes: Chat.init() -> { emit, on, nickname, connected }
 
 const Chat = (() => {
   let ws = null;
   let nickname = '';
   const listeners = {};
-  let reconnectAttempts = 0;
-  let reconnectTimer = null;
   let pingTimer = null;
-  let isAlive = true;
   let pollingId = null;
-  let pollingMode = false;
-  let lastMsgTime = 0;
+  let mode = 'init'; // 'ws' | 'poll' | 'local'
+  let lastMsgTime = Date.now();
   let nicknameSet = false;
+  let tryCount = 0;
+  const POLL_INTERVAL = 2500;
 
   const socket = {
     emit(type, data) {
-      if (pollingMode) {
-        this._httpSend(type, data);
-      } else if (ws && ws.readyState === WebSocket.OPEN) {
-        try {
-          ws.send(JSON.stringify(Object.assign({ type }, data || {})));
-        } catch (e) {}
+      if (mode === 'ws' && ws && ws.readyState === WebSocket.OPEN) {
+        try { ws.send(JSON.stringify(Object.assign({ type }, data || {}))); } catch (e) { this._httpSend(type, data); }
       } else {
         this._httpSend(type, data);
       }
     },
     _httpSend(type, data) {
-      if (type === 'chat-msg' || type === 'chat') {
-        const text = (data && data.text || '').trim();
-        if (!text) return;
+      if ((type === 'chat-msg' || type === 'chat') && data && data.text) {
         fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, nickname }),
+          body: JSON.stringify({ text: String(data.text).trim().slice(0, 500), nickname }),
         }).catch(() => {});
+        showMsgLocally(nickname, String(data.text).trim());
       }
     },
-    on(type, fn) {
-      listeners[type] = fn;
-    },
+    on(type, fn) { listeners[type] = fn; },
     get nickname() { return nickname; },
-    get connected() { return (ws && ws.readyState === WebSocket.OPEN) || pollingMode; },
+    get connected() { return mode === 'ws'; },
+    get mode() { return mode; },
   };
 
+  function el(id) { return document.getElementById(id); }
+
+  function showMsgLocally(nick, text) {
+    const I = window.Interactions || Interactions;
+    if (I && I.addChatMsg) I.addChatMsg(nick, text);
+    if (listeners['chat-msg']) listeners['chat-msg']({ nickname: nick, text, time: Date.now() });
+  }
+
   function setStatus(state, msg) {
-    const el = document.getElementById('chat-status');
-    if (!el) return;
-    el.className = 'chat-status chat-status--' + state;
-    el.title = msg || '';
-    if (state === 'on') el.textContent = '●';
-    else if (state === 'off') el.textContent = '○';
-    else el.textContent = '◐';
+    const status = el('chat-status');
+    if (!status) return;
+    status.className = 'chat-status chat-status--' + state;
+    status.title = msg || '';
+    status.textContent = state === 'on' ? '●' : state === 'connecting' ? '◐' : '○';
   }
 
   function init() {
     setupUI();
-    connect();
+    nickname = genNickname();
+    const nickEl = el('user-nickname');
+    if (nickEl) nickEl.textContent = nickname;
+    nicknameSet = true;
+    if (listeners['init']) listeners['init']({ nickname });
+    tryConnect();
     return socket;
   }
 
   function setupUI() {
-    const input = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('chat-send');
+    const input = el('chat-input');
+    const sendBtn = el('chat-send');
 
     function sendChat() {
       if (!input) return;
@@ -74,107 +78,36 @@ const Chat = (() => {
 
     if (sendBtn) sendBtn.addEventListener('click', sendChat);
     if (input) input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        sendChat();
-      }
+      if (e.key === 'Enter') { e.preventDefault(); sendChat(); }
     });
   }
 
-  // ---------- Polling mode ----------
-  function startPolling() {
-    if (!nicknameSet) {
-      nickname = randomLocalNickname();
-      nicknameSet = true;
-      const el = document.getElementById('user-nickname');
-      if (el) el.textContent = nickname;
-      if (listeners['init']) listeners['init']({ nickname });
-    }
-    pollingMode = true;
-    setStatus('on', 'HTTP 폴링 모드');
-    if (document.getElementById('stat-online')) {
-      document.getElementById('stat-online').textContent = '폴링';
-    }
-    poll();
-  }
-
-  function poll() {
-    if (!pollingMode) return;
-    fetch('/api/chat?since=' + lastMsgTime)
-      .then(r => r.json())
-      .then(data => {
-        if (!pollingMode) return;
-        if (data.mode === 'ws' && data.ok && ws && ws.readyState !== WebSocket.CLOSED && ws.readyState !== WebSocket.CLOSING) {
-          stopPolling();
-          return;
-        }
-        if (data.messages) {
-          for (const m of data.messages) {
-            if (m.time > lastMsgTime) {
-              lastMsgTime = m.time;
-              if (m.type === 'chat-msg' || m.nickname) {
-                const I = window.Interactions || Interactions;
-                if (I && I.addChatMsg) I.addChatMsg(m.nickname || '익명', m.text);
-                if (listeners['chat-msg']) listeners['chat-msg'](m);
-              }
-            }
-          }
-        }
-        if (typeof data.online === 'number') {
-          const el = document.getElementById('stat-online');
-          if (el) el.textContent = data.online;
-        }
-      })
-      .catch(() => {})
-      .then(() => {
-        if (pollingMode) pollingId = setTimeout(poll, 3000);
-      });
-  }
-
-  function stopPolling() {
-    pollingMode = false;
-    if (pollingId) { clearTimeout(pollingId); pollingId = null; }
-    if (document.getElementById('stat-online')) {
-      document.getElementById('stat-online').textContent = '0';
-    }
-  }
-
-  function randomLocalNickname() {
+  function genNickname() {
     const adjs = ['귀여운','졸린','배고픈','심심한','신비한','용감한','게으른','행복한','슬픈','촉촉한','따뜻한','시원한','달콤한','짭짤한','아기','어른','철든','졸리다','배부른','심통있는','엉뚱한','수줍은','씩씩한','명상하는','산책하는','꿈꾸는'];
     const nouns = ['토끼','고양이','강아지','여우','판다','곰','올빼미','다람쥐','펭귄','코알라','호랑이','사자','고래','나비','별','달','구름','햇살','바람','눈꽃','파랑','노랑','연기','안개','이슬'];
     return adjs[Math.floor(Math.random() * adjs.length)] + nouns[Math.floor(Math.random() * nouns.length)] + Math.floor(Math.random() * 100);
   }
 
-  // ---------- WebSocket mode ----------
-  function connect() {
-    if (reconnectTimer) {
-      clearTimeout(reconnectTimer);
-      reconnectTimer = null;
-    }
-    if (pingTimer) {
-      clearInterval(pingTimer);
-      pingTimer = null;
-    }
-
+  // ---------- Try WebSocket → fallback to polling → local ----------
+  function tryConnect() {
+    tryCount++;
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const url = `${protocol}//${location.host}/api/ws`;
 
-    let wsFallbackTimer = null;
-    try {
-      ws = new WebSocket(url);
-      setStatus('connecting', '서버 연결 시도 중...');
-    } catch (e) {
-      setStatus('off', 'WebSocket 실패 → 폴링 모드');
-      startPolling();
-      return;
-    }
+    try { ws = new WebSocket(url); } catch (e) { fallbackPoll(); return; }
+    setStatus('connecting', 'WebSocket 연결 시도...');
+
+    const failTimer = setTimeout(() => {
+      if (ws && ws.readyState !== WebSocket.OPEN) {
+        try { ws.close(); } catch (e) {}
+        fallbackPoll();
+      }
+    }, 5000);
 
     ws.addEventListener('open', () => {
-      reconnectAttempts = 0;
-      isAlive = true;
+      clearTimeout(failTimer);
+      mode = 'ws';
       setStatus('on', 'WebSocket 연결됨');
-      if (wsFallbackTimer) { clearTimeout(wsFallbackTimer); wsFallbackTimer = null; }
-      stopPolling();
       if (pingTimer) clearInterval(pingTimer);
       pingTimer = setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
@@ -183,16 +116,13 @@ const Chat = (() => {
       }, 25000);
     });
 
-    ws.addEventListener('message', (event) => {
+    ws.addEventListener('message', (e) => {
       let msg;
-      try { msg = JSON.parse(event.data); } catch (e) { return; }
+      try { msg = JSON.parse(e.data); } catch (ex) { return; }
       if (!msg || !msg.type) return;
-
       if (msg.type === 'init') {
         nickname = msg.nickname;
-        nicknameSet = true;
-        const el = document.getElementById('user-nickname');
-        if (el) el.textContent = nickname;
+        if (el('user-nickname')) el('user-nickname').textContent = nickname;
         if (listeners['init']) listeners['init']({ nickname });
       } else if (msg.type === 'chat-msg') {
         lastMsgTime = msg.time || Date.now();
@@ -200,37 +130,59 @@ const Chat = (() => {
         if (I && I.addChatMsg) I.addChatMsg(msg.nickname, msg.text);
         if (listeners['chat-msg']) listeners['chat-msg'](msg);
       } else if (msg.type === 'user-count' || msg.type === 'stats') {
-        const on = document.getElementById('stat-online');
-        if (on && typeof msg.online === 'number') on.textContent = msg.online;
-        else if (on && typeof msg.count === 'number') on.textContent = msg.count;
+        const on = el('stat-online');
+        if (on) on.textContent = msg.online ?? msg.count ?? on.textContent;
         if (listeners['stats']) listeners['stats']({ online: msg.online ?? msg.count });
-        if (listeners['user-count']) listeners['user-count']({ count: msg.count });
-      } else if (msg.type === 'pong') {
-        isAlive = true;
-      }
+      } else if (msg.type === 'pong') {}
     });
 
-    ws.addEventListener('close', (ev) => {
+    ws.addEventListener('close', () => {
       if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
-      if (wsFallbackTimer) { clearTimeout(wsFallbackTimer); wsFallbackTimer = null; }
-      if (pollingMode) return;
-      setStatus('off', 'WebSocket 끊김. 폴링 모드 전환...');
-      startPolling();
+      if (mode === 'ws') { setStatus('off', 'WebSocket 끊김'); fallbackPoll(); }
     });
+    ws.addEventListener('error', () => {});
+  }
 
-    ws.addEventListener('error', () => {
-      if (wsFallbackTimer) { clearTimeout(wsFallbackTimer); wsFallbackTimer = null; }
-      if (pollingMode) return;
-    });
+  function fallbackPoll() {
+    mode = 'poll';
+    setStatus('connecting', 'HTTP 폴링 연결 중...');
+    poll();
+  }
 
-    // Fallback: if WebSocket doesn't connect in 5s → polling
-    wsFallbackTimer = setTimeout(() => {
-      if (ws && ws.readyState !== WebSocket.OPEN && !pollingMode) {
-        setStatus('off', '서버 연결 시간 초과 → 폴링 모드');
-        ws.close();
-        startPolling();
-      }
-    }, 5000);
+  function poll() {
+    if (mode === 'ws') return;
+    fetch('/api/chat?since=' + lastMsgTime)
+      .then(r => r.json())
+      .then(data => {
+        if (mode === 'ws') return;
+        if (data.ok && data.mode === 'ws') {
+          mode = 'local';
+          setStatus('off', 'DO 활성화됨 → 페이지 새로고침 필요');
+          return;
+        }
+        if (data.messages) {
+          for (const m of data.messages) {
+            if (m.time > lastMsgTime && m.nickname && m.nickname !== nickname) {
+              lastMsgTime = m.time;
+              const I = window.Interactions || Interactions;
+              if (I && I.addChatMsg) I.addChatMsg(m.nickname, m.text);
+            }
+          }
+        }
+        if (typeof data.online === 'number') {
+          if (el('stat-online')) el('stat-online').textContent = data.online;
+          setStatus(data.online > 0 ? 'on' : 'off', data.online > 0 ? data.online + '명 접속' : '대기 중');
+        }
+        if (data.error && data.error.includes('binding')) {
+          mode = 'local';
+          setStatus('off', '설정 필요');
+          if (el('stat-online')) el('stat-online').textContent = '0';
+        }
+      })
+      .catch(() => {})
+      .then(() => {
+        if (mode !== 'ws') pollingId = setTimeout(poll, POLL_INTERVAL);
+      });
   }
 
   return { init };
