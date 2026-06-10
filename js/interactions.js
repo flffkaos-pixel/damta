@@ -59,7 +59,7 @@ const Interactions = (() => {
       this.nickname = nickname;
       this.text = text;
       this.life = 1;
-      this.decay = 0.005 + Math.random() * 0.003;
+      this.decay = 0.003 + Math.random() * 0.002;
       this.x = 20 + Math.random() * Math.max(W * 0.7, 140);
       this.y = H * 0.22 + Math.random() * H * 0.16;
       this.vy = (-0.15 - Math.random() * 0.10) * baseScale;
