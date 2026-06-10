@@ -59,12 +59,12 @@ const Interactions = (() => {
       this.nickname = nickname;
       this.text = text;
       this.life = 1;
-      this.decay = 0.0014 + Math.random() * 0.0010;
+      this.decay = 0.005 + Math.random() * 0.003;
       this.x = 20 + Math.random() * Math.max(W * 0.7, 140);
-      this.y = H * 0.25 + Math.random() * H * 0.18;
-      this.vy = (-0.18 - Math.random() * 0.16) * baseScale;
-      this.vx = (Math.random() - 0.5) * 0.05 * baseScale;
-      this.scale = 0.6;
+      this.y = H * 0.22 + Math.random() * H * 0.16;
+      this.vy = (-0.15 - Math.random() * 0.10) * baseScale;
+      this.vx = (Math.random() - 0.5) * 0.06 * baseScale;
+      this.scale = 0.7;
       this.targetScale = 1;
       this.wobble = Math.random() * Math.PI * 2;
       this.puffs = this._buildPuffs();
@@ -77,12 +77,12 @@ const Interactions = (() => {
     _buildPuffs() {
       const s = baseScale;
       const arr = [
-        { dx: 0, dy: 0, r: 22 * s },
-        { dx: -18 * s, dy: -2 * s, r: 16 * s },
-        { dx: 18 * s, dy: -3 * s, r: 17 * s },
-        { dx: -10 * s, dy: -12 * s, r: 14 * s },
-        { dx: 12 * s, dy: -13 * s, r: 15 * s },
-        { dx: 0, dy: -16 * s, r: 13 * s }
+        { dx: 0, dy: 0, r: 18 * s },
+        { dx: -14 * s, dy: -2 * s, r: 13 * s },
+        { dx: 14 * s, dy: -3 * s, r: 14 * s },
+        { dx: -8 * s, dy: -10 * s, r: 11 * s },
+        { dx: 10 * s, dy: -11 * s, r: 12 * s },
+        { dx: 0, dy: -13 * s, r: 10 * s }
       ];
       return arr;
     }
@@ -109,12 +109,12 @@ const Interactions = (() => {
     draw(ctx) {
       if (this.life <= 0) return;
       const s = baseScale;
-      const fs = 9.5 * s;
+      const fs = 6.5 * s;
       ctx.font = `bold ${fs}px -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif`;
       const nick = this.nickname.length > 12 ? this.nickname.slice(0, 12) + '…' : this.nickname;
       const m = ctx.measureText(this.text);
       const textW = Math.min(m.width, W * 0.62);
-      const cloudR = Math.max(textW / 2 + 26 * s, 48 * s);
+      const cloudR = Math.max(textW / 2 + 18 * s, 38 * s);
       const cloudW = cloudR * 2;
       const cloudH = cloudR * 1.1;
 
