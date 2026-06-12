@@ -65,7 +65,7 @@
   "applicationCategory": "SocialNetworkingApplication",
   "operatingSystem": "Any",
   "browserRequirements": "Chrome 90+, Safari 14+, Firefox 88+, Edge 90+, WebSocket 지원 필요",
-  "inLanguage": "ko-KR",
+  "inLanguage": "ko",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW", "availability": "https://schema.org/InStock" },
   "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.5", "ratingCount": "128", "bestRating": "5", "worstRating": "1" },
   "featureList": ["익명 실시간 채팅", "가상 전자담배 인터랙션", "회원가입 불필요", "모바일 최적화", "완전 무료", "PWA 홈화면 추가", "DDoS 방어", "Cloudflare 글로벌 CDN"],
@@ -199,11 +199,18 @@
   "name": "온라인 담타",
   "alternateName": "Online Damta",
   "url": "https://onlinedamta.pages.dev/",
-  "inLanguage": "ko-KR",
+  "inLanguage": "ko",
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "https://onlinedamta.pages.dev/?q={search_term_string}",
-    "query-input": "required name=search_term_string"
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://onlinedamta.pages.dev/?q={search_term_string}"
+    },
+    "query-input": {
+      "@type": "PropertyValueSpecification",
+      "valueRequired": true,
+      "valueName": "search_term_string"
+    }
   }
 }
 </script>
