@@ -2,12 +2,12 @@
 // Verifies Durable Object binding is configured for multi-user chat
 
 export async function onRequest(context) {
-  const hasBinding = !!context.env.CHAT_ROOM;
+  const hasBinding = !!context.env.Chat_Room;
   let bindingTest = null;
   if (hasBinding) {
     try {
-      const id = context.env.CHAT_ROOM.idFromName('healthcheck');
-      const obj = context.env.CHAT_ROOM.get(id);
+      const id = context.env.Chat_Room.idFromName('healthcheck');
+      const obj = context.env.Chat_Room.get(id);
       const resp = await obj.fetch(new Request('https://internal/health'));
       bindingTest = { reachable: resp.status !== 500, status: resp.status };
     } catch (e) {
@@ -19,14 +19,14 @@ export async function onRequest(context) {
     timestamp: new Date().toISOString(),
     chat_mode: hasBinding ? 'WebSocket + HTTP polling (멀티유저)' : 'HTTP polling only (로컬 전용, 타인 메시지 불가)',
     binding: {
-      name: 'CHAT_ROOM',
+      name: 'Chat_Room',
       configured: hasBinding,
       test: bindingTest,
       config_url: 'https://dash.cloudflare.com/?to=/:account/workers-and-pages',
       steps: [
         '1. Cloudflare 대시보드 로그인 → Workers & Pages → onlinedamta',
         '2. Settings → Functions → Durable Object bindings → Add binding',
-        '3. Variable name: CHAT_ROOM  /  Class name: ChatRoom',
+        '3. Variable name: Chat_Room  /  Class name: room_MyDurableObject',
         '4. Save → 자동 재배포 완료 후 페이지 새로고침',
       ],
       status: hasBinding ? '✅ 정상' : '❌ 미설정 - 위 단계를 따라 설정해주세요',

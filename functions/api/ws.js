@@ -1,6 +1,6 @@
 // WebSocket endpoint: /api/ws
 // All in one file (no imports) for maximum Cloudflare Pages compatibility
-// Uses a Durable Object (CHAT_ROOM) for cross-connection broadcast
+// Uses a Durable Object (Chat_Room) for cross-connection broadcast
 
 export class ChatRoom {
   constructor(state, env) {
@@ -140,12 +140,12 @@ export class ChatRoom {
 export async function onRequestGet(context) {
   return new Response(JSON.stringify({
     ok: true,
-    binding: !!context.env.CHAT_ROOM,
-    message: context.env.CHAT_ROOM
-      ? 'CHAT_ROOM Durable Object binding is set. WebSocket ready at /api/ws'
-      : 'CHAT_ROOM binding is NOT set. Configure in Cloudflare dashboard: Settings → Functions → Durable Object bindings → Add (name: CHAT_ROOM, class: ChatRoom)',
+    binding: !!context.env.Chat_Room,
+    message: context.env.Chat_Room
+      ? 'Chat_Room Durable Object binding is set. WebSocket ready at /api/ws'
+      : 'Chat_Room binding is NOT set.',
   }), {
-    status: context.env.CHAT_ROOM ? 200 : 503,
+    status: context.env.Chat_Room ? 200 : 503,
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
 }
