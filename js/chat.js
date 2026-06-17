@@ -81,7 +81,7 @@ const Chat = (() => {
     fetch(WORKER + '/api/chat?since=' + lastMsgTime)
       .then(r => r.json())
       .then(data => {
-        if (!data.ok) return;
+        if (data.error) return;
         if (data.messages) {
           for (const m of data.messages) {
             if (m.time > lastMsgTime && m.nickname && m.nickname !== nickname) {
