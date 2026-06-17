@@ -26,7 +26,7 @@ export async function onRequest(context) {
       steps: [
         '1. Cloudflare 대시보드 로그인 → Workers & Pages → onlinedamta',
         '2. Settings → Functions → Durable Object bindings → Add binding',
-        '3. Variable name: Chat_Room  /  Class name: room_MyDurableObject',
+        '3. Variable name: Chat_Room  /  Class name: MyDurableObject',
         '4. Save → 자동 재배포 완료 후 페이지 새로고침',
       ],
       status: hasBinding ? '✅ 정상' : '❌ 미설정 - 위 단계를 따라 설정해주세요',

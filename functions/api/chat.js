@@ -7,7 +7,7 @@ const HELP = `
 To enable multi-user chat:
 1. Cloudflare Dashboard → Workers & Pages → onlinedamta
 2. Settings → Functions → Durable Object bindings
-3. Add: Variable name = Chat_Room, Class = room_MyDurableObject
+3. Add: Variable name = Chat_Room, Class = MyDurableObject
 4. Save → wait for redeploy → refresh the page
 `;
 
