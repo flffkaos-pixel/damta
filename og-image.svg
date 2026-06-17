@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="50%" stop-color="#16213e"/>
+      <stop offset="100%" stop-color="#0f3460"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e94560"/>
+      <stop offset="100%" stop-color="#533483"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="600" cy="315" r="200" fill="none" stroke="url(#glow)" stroke-width="2" opacity="0.3"/>
+  <circle cx="600" cy="315" r="150" fill="none" stroke="url(#glow)" stroke-width="1" opacity="0.2"/>
+  <text x="600" y="260" font-family="Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="72" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="2">온라인 담타</text>
+  <text x="600" y="330" font-family="Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="28" fill="#e94560" text-anchor="middle" letter-spacing="4">💨 익명 실시간 채팅</text>
+  <text x="600" y="390" font-family="Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="20" fill="#8899aa" text-anchor="middle">회원가입 없이 모두와 소근소근</text>
+  <text x="600" y="500" font-family="Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="16" fill="#556677" text-anchor="middle">onlinedamta.pages.dev</text>
+</svg>

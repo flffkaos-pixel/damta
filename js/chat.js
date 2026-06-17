@@ -1,4 +1,3 @@
-// D1 chat client: HTTP polling only
 const WORKER = 'https://mydurableobject.flffkaos.workers.dev';
 
 const Chat = (() => {
@@ -51,6 +50,7 @@ const Chat = (() => {
     if (listeners['init']) listeners['init']({ nickname });
     setupUI();
     setStatus('on', '연결 중...');
+    startHeartbeat();
     poll();
     return socket;
   }
@@ -75,6 +75,16 @@ const Chat = (() => {
     const a=['귀여운','졸린','배고픈','심심한','신비한','용감한','게으른','행복한','슬픈','촉촉한','따뜻한','시원한','달콤한','짭짤한','아기','어른','철든','졸리다','배부른','심통있는','엉뚱한','수줍은','씩씩한','명상하는','산책하는','꿈꾸는'];
     const b=['토끼','고양이','강아지','여우','판다','곰','올빼미','다람쥐','펭귄','코알라','호랑이','사자','고래','나비','별','달','구름','햇살','바람','눈꽃','파랑','노랑','연기','안개','이슬'];
     return a[Math.random()*a.length|0]+b[Math.random()*b.length|0]+(Math.random()*100|0);
+  }
+
+  function startHeartbeat() {
+    setInterval(() => {
+      fetch(WORKER + '/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'ping', nickname }),
+      }).catch(() => {});
+    }, 20000);
   }
 
   function poll() {
