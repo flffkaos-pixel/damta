@@ -23,7 +23,7 @@ const Chat = (() => {
     },
     _httpSend(type, data) {
       if ((type === 'chat-msg' || type === 'chat') && data && data.text) {
-        fetch('/api/chat', {
+        fetch('https://mydurableobject.flffkaos.workers.dev/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: String(data.text).trim().slice(0, 500), nickname }),
@@ -93,8 +93,7 @@ const Chat = (() => {
   // ---------- Try WebSocket → fallback to polling → local ----------
   function tryConnect() {
     tryCount++;
-    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url = `${protocol}//${location.host}/api/ws`;
+    const url = 'wss://mydurableobject.flffkaos.workers.dev/api/ws';
 
     try { ws = new WebSocket(url); } catch (e) { fallbackPoll(); return; }
     setStatus('connecting', 'WebSocket 연결 시도...');
@@ -153,7 +152,7 @@ const Chat = (() => {
 
   function poll() {
     if (mode === 'ws') return;
-    fetch('/api/chat?since=' + lastMsgTime)
+    fetch('https://mydurableobject.flffkaos.workers.dev/api/chat?since=' + lastMsgTime)
       .then(r => r.json())
       .then(data => {
         if (mode === 'ws') return;

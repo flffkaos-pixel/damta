@@ -1,39 +1,26 @@
-// Health check: GET /api/health
-// Verifies Durable Object binding is configured for multi-user chat
-
+// Health check: checks backend Worker status
 export async function onRequest(context) {
-  const hasBinding = !!context.env.Chat_Room;
-  let bindingTest = null;
-  if (hasBinding) {
-    try {
-      const id = context.env.Chat_Room.idFromName('healthcheck');
-      const obj = context.env.Chat_Room.get(id);
-      const resp = await obj.fetch(new Request('https://internal/health'));
-      bindingTest = { reachable: resp.status !== 500, status: resp.status };
-    } catch (e) {
-      bindingTest = { reachable: false, error: String(e.message || e) };
-    }
+  try {
+    const resp = await fetch('https://mydurableobject.flffkaos.workers.dev/api/health');
+    const data = await resp.json();
+    return new Response(JSON.stringify({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      chat_mode: 'WebSocket + HTTP polling (Worker DO)',
+      worker: data,
+      status: '✅ 정상'
+    }, null, 2), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({
+      ok: false,
+      timestamp: new Date().toISOString(),
+      chat_mode: 'Worker 연결 실패',
+      error: String(e.message || e),
+      status: '❌ Worker 오프라인'
+    }, null, 2), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
   }
-  return new Response(JSON.stringify({
-    ok: hasBinding,
-    timestamp: new Date().toISOString(),
-    chat_mode: hasBinding ? 'WebSocket + HTTP polling (멀티유저)' : 'HTTP polling only (로컬 전용, 타인 메시지 불가)',
-    binding: {
-      name: 'Chat_Room',
-      configured: hasBinding,
-      test: bindingTest,
-      config_url: 'https://dash.cloudflare.com/?to=/:account/workers-and-pages',
-      steps: [
-        '1. Cloudflare 대시보드 로그인 → Workers & Pages → onlinedamta',
-        '2. Settings → Functions → Durable Object bindings → Add binding',
-        '3. Variable name: Chat_Room  /  Class name: MyDurableObject',
-        '4. Save → 자동 재배포 완료 후 페이지 새로고침',
-      ],
-      status: hasBinding ? '✅ 정상' : '❌ 미설정 - 위 단계를 따라 설정해주세요',
-    },
-    user_status: '랜덤 닉네임이 생성되었습니다. 메시지를 보내면 로컬에 표시됩니다. 위 단계 완료 후 모두와 채팅할 수 있습니다.',
-  }, null, 2), {
-    status: hasBinding ? 200 : 200, // always 200 so user can read the JSON
-    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-  });
 }
