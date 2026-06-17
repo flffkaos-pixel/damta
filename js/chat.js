@@ -1,4 +1,6 @@
 // D1 chat client: HTTP polling only
+const WORKER = 'https://mydurableobject.flffkaos.workers.dev';
+
 const Chat = (() => {
   let nickname = '';
   const listeners = {};
@@ -10,7 +12,7 @@ const Chat = (() => {
   const socket = {
     emit(type, data) {
       if ((type === 'chat-msg' || type === 'chat') && data && data.text) {
-        fetch('/api/chat', {
+        fetch(WORKER + '/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: String(data.text).trim().slice(0, 500), nickname }),
@@ -76,7 +78,7 @@ const Chat = (() => {
   }
 
   function poll() {
-    fetch('/api/chat?since=' + lastMsgTime)
+    fetch(WORKER + '/api/chat?since=' + lastMsgTime)
       .then(r => r.json())
       .then(data => {
         if (!data.ok) return;
