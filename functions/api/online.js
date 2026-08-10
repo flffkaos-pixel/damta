@@ -20,8 +20,14 @@ export async function onRequest(context) {
         const body = await request.json();
         if (body && body.nickname) nickname = body.nickname;
       } catch {}
-      await kv.put(`${KEY_PREFIX}${nickname}`, String(now), { expirationTtl: TTL });
-      return new Response(JSON.stringify({ ok: true }), {
+      try {
+        await kv.put(`${KEY_PREFIX}${nickname}`, String(now), { expirationTtl: TTL });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e), nickname }), {
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, nickname }), {
         headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
       });
     }
