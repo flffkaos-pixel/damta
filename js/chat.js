@@ -1,12 +1,15 @@
 const WORKER = 'https://mydurableobject.flffkaos.workers.dev';
+const ONLINE_API = '/api/online';
 
 const Chat = (() => {
   let nickname = '';
   const listeners = {};
   let pollingId = null;
+  let onlinePollingId = null;
   let mode = 'poll';
   let lastMsgTime = Date.now();
   const POLL_INTERVAL = 2500;
+  const ONLINE_INTERVAL = 15000;
 
   const socket = {
     emit(type, data) {
@@ -41,16 +44,21 @@ const Chat = (() => {
     status.textContent = state === 'on' ? '●' : '○';
   }
 
+  function updateOnline(count) {
+    const onlineEl = el('stat-online');
+    if (onlineEl) onlineEl.textContent = count;
+    setStatus('on', count + '명 접속');
+  }
+
   function init() {
     nickname = genNickname();
     const nickEl = el('user-nickname');
     if (nickEl) nickEl.textContent = nickname;
-    const onlineEl = el('stat-online');
-    if (onlineEl) onlineEl.textContent = '1';
     if (listeners['init']) listeners['init']({ nickname });
     setupUI();
     setStatus('on', '연결 중...');
     startHeartbeat();
+    pollOnline();
     poll();
     return socket;
   }
@@ -77,7 +85,17 @@ const Chat = (() => {
     return a[Math.random()*a.length|0]+b[Math.random()*b.length|0]+(Math.random()*100|0);
   }
 
+  function heartbeatOnline() {
+    fetch(ONLINE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname }),
+    }).catch(() => {});
+  }
+
   function startHeartbeat() {
+    heartbeatOnline();
+    setInterval(heartbeatOnline, 20000);
     setInterval(() => {
       fetch(WORKER + '/api/chat', {
         method: 'POST',
@@ -85,6 +103,16 @@ const Chat = (() => {
         body: JSON.stringify({ type: 'ping', nickname }),
       }).catch(() => {});
     }, 20000);
+  }
+
+  function pollOnline() {
+    fetch(ONLINE_API + '?nickname=' + encodeURIComponent(nickname))
+      .then(r => r.json())
+      .then(data => {
+        if (data && typeof data.online === 'number') updateOnline(Math.max(1, data.online));
+      })
+      .catch(() => {})
+      .then(() => { onlinePollingId = setTimeout(pollOnline, ONLINE_INTERVAL); });
   }
 
   function poll() {
@@ -101,9 +129,6 @@ const Chat = (() => {
             }
           }
         }
-        const online = Math.max(1, data.online || 0);
-        if (el('stat-online')) el('stat-online').textContent = online;
-        setStatus('on', online + '명 접속');
       })
       .catch(() => {})
       .then(() => { pollingId = setTimeout(poll, POLL_INTERVAL); });
