@@ -24,12 +24,21 @@ export async function onRequest(context) {
 
     const list = await kv.list({ prefix: KEY_PREFIX });
     let count = 0;
+    const details = [];
     for (const key of list.keys) {
       const val = await kv.get(key.name);
-      if (val && parseInt(val) + TTL * 1000 > now) count++;
-      else await kv.delete(key.name);
+      const expired = val && parseInt(val) + TTL * 1000 <= now;
+      if (val && !expired) {
+        count++;
+        details.push({ key: key.name, ts: parseInt(val), valid: true });
+      } else if (val) {
+        await kv.delete(key.name);
+        details.push({ key: key.name, ts: parseInt(val), valid: false, deleted: true });
+      } else {
+        details.push({ key: key.name, val: null, valid: false });
+      }
     }
-    return new Response(JSON.stringify({ online: Math.max(1, count) }), {
+    return new Response(JSON.stringify({ online: Math.max(1, count), debug: { keysFound: list.keys.length, details, now } }), {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
     });
   } catch (e) {
