@@ -1,7 +1,6 @@
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-  const nickname = url.searchParams.get('nickname') || 'anon';
   const now = Date.now();
   const TTL = 60;
   const KEY_PREFIX = 'online:';
@@ -16,12 +15,18 @@ export async function onRequest(context) {
 
   try {
     if (request.method === 'POST') {
+      let nickname = 'anon';
+      try {
+        const body = await request.json();
+        if (body && body.nickname) nickname = body.nickname;
+      } catch {}
       await kv.put(`${KEY_PREFIX}${nickname}`, String(now), { expirationTtl: TTL });
       return new Response(JSON.stringify({ ok: true }), {
         headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
       });
     }
 
+    const nickname = url.searchParams.get('nickname');
     const list = await kv.list({ prefix: KEY_PREFIX });
     let count = 0;
     const details = [];
