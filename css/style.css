@@ -5,6 +5,7 @@ body {
   color: #e0d8cc;
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -21,7 +22,7 @@ body {
 .chat-status--connecting { color: #fbbf24; animation: pulse-conn 1s infinite; }
 @keyframes pulse-on { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 @keyframes pulse-conn { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-#app { display: flex; flex-direction: column; height: 100vh; padding-top: 20px; }
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; padding-top: max(20px, env(safe-area-inset-top)); }
 
 #header {
   display: flex; align-items: center; justify-content: space-between;
