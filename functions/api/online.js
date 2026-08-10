@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const nickname = url.searchParams.get('nickname') || 'anon';
   const now = Date.now();
-  const TTL = 30;
+  const TTL = 60;
   const KEY_PREFIX = 'online:';
 
   if (!env.ONLINE_KV) {
