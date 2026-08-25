@@ -1,0 +1,9 @@
+# 온라인 담타 💨 — 비흡연자 익명 실시간 채팅 | Cloudflare Pages 무료
+
+> 온라인 담타는 비흡연자도 함께하는 100% 익명 실시간 채팅 커뮤니티입니다. 화면을 눌러 가상 전자담배(Vape)를 즐기며 전국 각지의 사람들과 소근소근 대화하세요. 회원가입·앱 설치·결제 없이 무료로 이용 가능. Cloudflare Pages 글로벌 엣지에서 24/7 무중단 운영.
+
+Canonical URL: https://onlinedamta.pages.dev
+Language: ko
+
+## Pages
+- https://onlinedamta.pages.dev/ : 온라인 담타 💨 — 비흡연자 익명 실시간 채팅 | Cloudflare Pages 무료
